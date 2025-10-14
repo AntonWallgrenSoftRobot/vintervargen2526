@@ -772,7 +772,7 @@ function renderLeaderboard(){
 
   // Aside overview ring
   const weeksPlayed=weeklyData.length;
-  const targetWeeks=Math.max(10, weeksPlayed); // arbitrary target to show progress ring
+  const targetWeeks=Math.max(25, weeksPlayed); // arbitrary target to show progress ring
   const pct=Math.round((weeksPlayed/targetWeeks)*100);
   const ring=document.getElementById('seasonRing');
   const pctEl=document.getElementById('seasonPct');
