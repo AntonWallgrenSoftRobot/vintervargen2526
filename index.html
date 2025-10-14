@@ -879,6 +879,54 @@ function populateWeekSelector(){
   sel.innerHTML = weeklyData.map((w,i)=>`<option value="${i}">Week ${w.week} • ${w.date}</option>`).reverse().join('');
   sel.value=currentWeek;
 }
+function pickWeeklyTopTeam(week){
+  const players = week.stats
+    .filter(p => p.attendance === 1)
+    .map(p => ({
+      ...p,
+      ga: p.goals + p.assists,
+      weekPoints: p.attendance + p.goals + p.assists + p.cleanSheet + (p.turbotorped * 5)
+    }));
+
+  const taken = new Set();
+  const team = [];
+
+  // --- Attackers: top 2 by GA (tie-break goals, then points) ---
+  const byGA = [...players].sort((a,b) =>
+    (b.ga - a.ga) || (b.goals - a.goals) || (b.weekPoints - a.weekPoints)
+  );
+  for (const p of byGA) {
+    if (!taken.has(p.name)) { team.push({...p, role:'ATT'}); taken.add(p.name); }
+    if (team.filter(x=>x.role==='ATT').length === 2) break;
+  }
+
+  // --- Defenders: top 2 by cleanSheet, tie-break GA, then points ---
+  const byCS = [...players].sort((a,b) =>
+    (b.cleanSheet - a.cleanSheet) || (b.ga - a.ga) || (b.weekPoints - a.weekPoints)
+  );
+  for (const p of byCS) {
+    if (!taken.has(p.name)) { team.push({...p, role:'DEF'}); taken.add(p.name); }
+    if (team.filter(x=>x.role==='DEF').length === 2) break;
+  }
+
+  // --- Fifth: best remaining by weekly points (tie-break GA, then goals) ---
+  const byPts = [...players].sort((a,b) =>
+    (b.weekPoints - a.weekPoints) || (b.ga - a.ga) || (b.goals - a.goals)
+  );
+  for (const p of byPts) {
+    if (!taken.has(p.name)) { team.push({...p, role:'MVP'}); taken.add(p.name); break; }
+  }
+
+  // Fallbacks: if any slots unfilled (e.g., too few players), fill by next-best points
+  if (team.length < 5) {
+    for (const p of byPts) {
+      if (!taken.has(p.name)) { team.push({...p, role:'FLEX'}); taken.add(p.name); }
+      if (team.length === 5) break;
+    }
+  }
+
+  return team.slice(0,5);
+}
 function updateWeeklyView(){
   currentWeek=parseInt(document.getElementById('weekSelect').value);
   const week=weeklyData[currentWeek];
@@ -894,12 +942,21 @@ function updateWeeklyView(){
       <td><span class="points">${pts}</span></td>
     </tr>`;
   }).join('');
-  const top = week.stats.map(p=>({...p,weekPoints:p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5)}))
-    .filter(p=>p.attendance===1).sort((a,b)=>b.weekPoints-a.weekPoints).slice(0,5);
-  document.getElementById('weeklyTeam').innerHTML = `
-    <div class="weekly-team">
-      ${top.map(p=>`<div class="team-player"><div class="team-player-name">${p.name}</div><div class="team-player-stats">${p.goals}G ${p.assists}A ${p.turbotorped?'⭐':''}</div></div>`).join('')}
-    </div>`;
+	const team = pickWeeklyTopTeam(week);
+	document.getElementById('weeklyTeam').innerHTML = `
+	  <div class="weekly-team">
+	    ${team.map(p => `
+	      <div class="team-player">
+		<div class="team-player-name">${p.name}</div>
+		<div class="team-player-stats">
+		  ${p.role === 'ATT' ? 'ATT' : (p.role === 'DEF' ? 'DEF' : '★')}
+		  • ${p.goals}G ${p.assists}A
+		  • ${p.cleanSheet}CS
+		  ${p.turbotorped ? '• ⭐' : ''}
+		</div>
+	      </div>
+	    `).join('')}
+	  </div>`;
   const prevNames=new Set(); weeklyData.slice(0,currentWeek).forEach(w=>w.stats.forEach(p=>prevNames.add(p.name)));
   const newcomers=week.stats.filter(p=>!prevNames.has(p.name));
   const np=document.getElementById('newPlayers');
