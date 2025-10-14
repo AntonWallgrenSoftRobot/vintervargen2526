@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Futsal Season Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0b0d;
+  --panel:#16161a;
+  --panel-2:#1a1a1f;
+  --border:rgba(255,255,255,.06);
+  --border-hover:rgba(255,255,255,.12);
+  --muted:rgba(255,255,255,.65);
+  --muted-2:rgba(255,255,255,.45);
+  --white:#fff;
+  --red:#ff2d55;
+  --red-2:#ff0033;
+  --green:#39ff14;
+  --green-soft:rgba(57,255,20,.12);
+  --ring:rgba(57,255,20,.25);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.15);
+  --shadow-md:0 8px 32px rgba(0,0,0,.25);
+  --shadow-lg:0 20px 60px rgba(0,0,0,.4);
+  --shadow-glow:0 0 40px rgba(57,255,20,.15);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(1200px 800px at 0% 0%, rgba(255,45,85,.08), transparent 50%),
+    radial-gradient(1000px 700px at 100% 100%, rgba(57,255,20,.06), transparent 50%),
+    radial-gradient(800px 800px at 50% 50%, rgba(138,43,226,.03), transparent 70%),
+    var(--bg);
+  color:var(--white);
+  letter-spacing:-.01em;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ---------- Layout ---------- */
+.app{
+  display:grid;
+  grid-template-columns: 1fr 340px;
+  gap:24px;
+  min-height:100vh;
+  padding:24px;
+}
+@media (max-width:1200px){
+  .app{ grid-template-columns: 1fr; }
+}
+@media (max-width:880px){
+  .app{grid-template-columns:1fr}
+  .brand span, .nav .label{display:none}
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)), var(--panel);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:24px;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.08);
+  position:relative;
+  overflow:hidden;
+}
+.sidebar::before{
+  content:'';
+  position:absolute;
+  inset:-100%;
+  background:conic-gradient(from 0deg at 50% 50%, transparent, rgba(57,255,20,.05), transparent 60%);
+  animation:rotate 15s linear infinite;
+  pointer-events:none;
+}
+@keyframes rotate{to{transform:rotate(360deg)}}
+
+.brand{
+  display:flex; align-items:center; gap:12px; margin-bottom:24px; position:relative; z-index:1;
+}
+.brand .dot{
+  width:16px; height:16px; border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #fff, transparent 70%),
+              linear-gradient(135deg, var(--red), var(--green));
+  box-shadow: 0 0 20px rgba(255,45,85,.6), 0 0 40px rgba(57,255,20,.4), 0 4px 12px rgba(0,0,0,.3);
+  animation:pulse 3s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%, 100%{transform:scale(1); opacity:1;}
+  50%{transform:scale(1.1); opacity:.9;}
+}
+.brand span{
+  font-weight:800; letter-spacing:-.02em; font-size:19px;
+  background:linear-gradient(135deg, var(--white) 0%, rgba(255,255,255,.7) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  text-shadow:0 2px 10px rgba(255,255,255,.1);
+}
+
+.nav{display:flex; flex-direction:column; gap:6px; margin-top:12px; position:relative; z-index:1}
+.nav a{
+  display:flex; align-items:center; gap:14px;
+  padding:14px 16px;
+  border-radius:16px;
+  text-decoration:none; color:var(--muted);
+  border:1px solid transparent;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  font-weight:500;
+  position:relative;
+  overflow:hidden;
+}
+.nav a::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.06), transparent);
+  opacity:0;
+  transition:opacity .3s;
+}
+.nav a svg{opacity:.7; transition:all .3s;}
+.nav a:hover{
+  background:rgba(255,255,255,.03); 
+  color:var(--white); 
+  border-color:var(--border-hover); 
+  transform:translateX(4px);
+}
+.nav a:hover::before{opacity:1;}
+.nav a:hover svg{opacity:1; transform:scale(1.1);}
+.nav a.active{
+  background:linear-gradient(135deg, rgba(57,255,20,.15), rgba(255,45,85,.12));
+  color:var(--white); 
+  border-color:rgba(57,255,20,.3);
+  box-shadow:0 8px 24px rgba(57,255,20,.2), inset 0 1px 0 rgba(255,255,255,.1);
+  font-weight:600;
+}
+.nav a.active svg{opacity:1;}
+
+/* ---------- Top Bar ---------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:28px; gap:20px;
+}
+.title{
+  display:flex; flex-direction:column; gap:2px;
+}
+.title h1{
+  margin:0; font-size:32px; letter-spacing:-.02em; font-weight:800;
+  background:linear-gradient(135deg, var(--white), rgba(255,255,255,.8));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.title small{color:var(--muted-2); margin-top:4px; font-size:13px; font-weight:500;}
+
+.search{
+  display:flex; align-items:center; gap:12px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px; padding:12px 18px; min-width:280px;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:var(--shadow-sm);
+}
+.search:focus-within{
+  border-color:var(--border-hover);
+  box-shadow:0 4px 20px rgba(0,0,0,.2), 0 0 0 3px rgba(57,255,20,.08);
+  transform:translateY(-1px);
+}
+.search input{
+  background:transparent; border:none; color:var(--white); outline:none; width:100%;
+  font-size:14px; font-weight:500;
+}
+.search input::placeholder{color:var(--muted-2);}
+
+.controls{
+  display:flex; gap:6px; align-items:center;
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:6px; border-radius:16px;
+  box-shadow:var(--shadow-sm);
+}
+.btn{
+  padding:11px 20px; background:transparent; border:none; color:var(--muted);
+  font-weight:600; border-radius:12px; cursor:pointer; 
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  font-size:14px; position:relative; overflow:hidden;
+}
+.btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.08), transparent);
+  opacity:0;
+  transition:opacity .3s;
+}
+.btn:hover{
+  color:var(--white); 
+  background:rgba(255,255,255,.05);
+  transform:translateY(-1px);
+}
+.btn:hover::before{opacity:1;}
+.btn.active{
+  background:linear-gradient(135deg, rgba(57,255,20,.18), rgba(57,255,20,.12)); 
+  color:var(--green); 
+  box-shadow:0 0 0 1px var(--ring) inset, 0 4px 16px rgba(57,255,20,.25);
+}
+
+/* ---------- Cards / Grid ---------- */
+.panel{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01)),
+    var(--panel);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:28px;
+  box-shadow: var(--shadow-md);
+  transition:all .4s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  overflow:hidden;
+}
+.panel::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+}
+.panel:hover{
+  transform:translateY(-4px); 
+  border-color:rgba(57,255,20,.2);
+  box-shadow:var(--shadow-lg), var(--shadow-glow);
+}
+
+.section-title{
+  font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(255,255,255,.5); margin-bottom:20px; display:flex; gap:10px; align-items:center;
+  font-weight:700;
+}
+
+.grid{
+  display:grid; gap:18px; grid-template-columns:repeat(12, 1fr);
+}
+.leaderboard{grid-column:1 / -1}
+.hot-streak-card{grid-column: span 6}
+.stat-card{grid-column: span 3}
+@media (max-width:1024px){ .hot-streak-card,.stat-card{grid-column: span 6} }
+@media (max-width:720px){ .hot-streak-card,.stat-card,.leaderboard{grid-column: 1 / -1} }
+
+/* ---------- Table ---------- */
+table{width:100%; border-collapse:separate; border-spacing:0 8px}
+thead th{
+  font-size:10px; text-transform:uppercase; letter-spacing:1.5px; 
+  color:var(--muted-2); padding:0 16px 12px 16px; text-align:left;
+  border-bottom:1px solid var(--border); font-weight:700;
+}
+tbody tr{
+  background:linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border:1px solid var(--border);
+  border-radius:16px; overflow:hidden;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+tbody tr:hover{
+  background:linear-gradient(135deg, rgba(57,255,20,.08), rgba(57,255,20,.04)); 
+  border-color:rgba(57,255,20,.3);
+  transform:translateX(4px);
+  box-shadow:0 4px 16px rgba(57,255,20,.15);
+}
+td{padding:16px; font-size:14px; font-weight:500;}
+
+.rank{
+  font-weight:800; font-size:17px; padding:8px 14px; border-radius:12px;
+  color:var(--white); 
+  background:linear-gradient(135deg, rgba(255,45,85,.3), rgba(255,45,85,.15)); 
+  border:1px solid rgba(255,45,85,.4);
+  box-shadow:0 4px 12px rgba(255,45,85,.25), inset 0 1px 0 rgba(255,255,255,.1);
+  display:inline-block;
+}
+.rank-change{
+  font-size:11px; padding:5px 8px; border-radius:10px; margin-left:10px; 
+  font-weight:700; border:1px solid transparent;
+  display:inline-block;
+}
+.rank-up{
+  color:var(--green); 
+  background:linear-gradient(135deg, rgba(57,255,20,.18), rgba(57,255,20,.1)); 
+  border-color:var(--ring);
+  box-shadow:0 2px 8px rgba(57,255,20,.2);
+}
+.rank-down{
+  color:var(--red); 
+  background:linear-gradient(135deg, rgba(255,45,85,.18), rgba(255,45,85,.1)); 
+  border-color:rgba(255,45,85,.35);
+  box-shadow:0 2px 8px rgba(255,45,85,.2);
+}
+
+.points{
+  font-weight:800; font-size:16px;
+  background:linear-gradient(120deg, var(--green), #c7ffc7);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  text-shadow:0 0 20px rgba(57,255,20,.3);
+}
+
+/* ---------- Metric Items ---------- */
+.metric-item{
+  background:linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border:1px solid var(--border);
+  padding:18px; border-radius:16px; margin-bottom:12px;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  overflow:hidden;
+}
+.metric-item::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+}
+.metric-item:hover{
+  border-color:rgba(57,255,20,.25); 
+  transform:translateX(6px);
+  box-shadow:0 4px 16px rgba(57,255,20,.1);
+  background:linear-gradient(135deg, rgba(57,255,20,.06), rgba(255,255,255,.02));
+}
+.metric-player{font-weight:700; font-size:15px;}
+.metric-value{color:var(--muted); font-size:13px; margin-top:8px; line-height:1.6;}
+.new-player{color:var(--green); font-weight:700;}
+
+/* ---------- Hot Streak ---------- */
+.hot-streak{
+  text-align:center; padding:48px 32px; border-radius:20px;
+  border:1px solid rgba(57,255,20,.3);
+  background:
+    radial-gradient(800px 300px at 50% 0%, rgba(57,255,20,.2), transparent 60%),
+    radial-gradient(600px 300px at 50% 100%, rgba(255,45,85,.15), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  position:relative; overflow:hidden;
+  box-shadow:0 0 60px rgba(57,255,20,.2), inset 0 1px 0 rgba(255,255,255,.1);
+}
+.hot-streak::after{
+  content:""; position:absolute; inset:-60%;
+  background:conic-gradient(from 0deg, transparent, rgba(57,255,20,.3), rgba(255,45,85,.25), transparent);
+  filter:blur(80px); animation:spin 10s linear infinite; opacity:.4;
+}
+@keyframes spin{to{transform:rotate(1turn)}}
+.hot-streak-player{
+  font-size:36px; font-weight:900; color:var(--green); letter-spacing:-.03em;
+  position:relative; z-index:1;
+  text-shadow:0 0 40px rgba(57,255,20,.6), 0 4px 20px rgba(0,0,0,.3);
+}
+.hot-streak-desc{
+  color:var(--muted); position:relative; z-index:1; margin-top:12px; 
+  font-size:15px; font-weight:500;
+}
+
+/* ---------- Team chips ---------- */
+.weekly-team{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:14px;
+}
+.team-player{
+  text-align:center; padding:20px 16px; border-radius:18px;
+  background:linear-gradient(135deg, rgba(57,255,20,.12), rgba(57,255,20,.06));
+  border:1px solid rgba(57,255,20,.3);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  overflow:hidden;
+}
+.team-player::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(57,255,20,.4), transparent);
+}
+.team-player:hover{
+  transform:translateY(-4px) scale(1.02); 
+  box-shadow:0 12px 32px rgba(57,255,20,.25);
+  border-color:rgba(57,255,20,.5);
+}
+.team-player-name{font-weight:800; color:var(--green); font-size:15px; letter-spacing:-.01em;}
+.team-player-stats{color:var(--muted); font-size:12px; margin-top:6px; font-weight:500;}
+
+/* ---------- Right Aside ---------- */
+.aside .widget+.widget{margin-top:20px}
+.kpi{
+  display:flex; align-items:center; gap:18px;
+}
+.kpi .ring{
+  width:72px; height:72px; border-radius:50%;
+  background: conic-gradient(var(--green) calc(var(--p)*1%), rgba(255,255,255,.08) 0);
+  display:grid; place-items:center;
+  border:1px solid var(--border);
+  box-shadow:0 0 30px rgba(57,255,20,.3), inset 0 0 20px rgba(0,0,0,.3);
+  position:relative;
+}
+.kpi .ring::before{
+  content:'';
+  position:absolute;
+  inset:8px;
+  border-radius:50%;
+  background:var(--panel);
+  border:1px solid var(--border);
+}
+.kpi .ring span{
+  font-weight:900; font-size:16px; position:relative; z-index:1;
+  background:linear-gradient(135deg, var(--green), #c7ffc7);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.badge{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 14px; border-radius:999px; font-weight:700; font-size:12px;
+  background:linear-gradient(135deg, rgba(255,45,85,.2), rgba(255,45,85,.12)); 
+  border:1px solid rgba(255,45,85,.4);
+  box-shadow:0 4px 12px rgba(255,45,85,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  animation:pulse-badge 2s ease-in-out infinite;
+}
+@keyframes pulse-badge{
+  0%, 100%{transform:scale(1); opacity:1;}
+  50%{transform:scale(1.05); opacity:.9;}
+}
+.small{font-size:12px; color:var(--muted); font-weight:500; margin-top:6px;}
+.header-card{
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+}
+
+/* ---------- Week selector ---------- */
+.week-selector{margin-bottom:20px; text-align:center}
+.week-selector select{
+  padding:14px 20px; 
+  background:linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  color:var(--white);
+  border:1px solid var(--border); 
+  border-radius:14px; 
+  font-weight:600; 
+  outline:none;
+  cursor:pointer;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  font-size:14px;
+  box-shadow:var(--shadow-sm);
+}
+.week-selector select:hover{
+  border-color:rgba(57,255,20,.35);
+  background:linear-gradient(135deg, rgba(57,255,20,.08), rgba(255,255,255,.02));
+  transform:translateY(-2px);
+  box-shadow:0 4px 16px rgba(57,255,20,.15);
+}
+.week-selector select:focus{
+  border-color:rgba(57,255,20,.5);
+  box-shadow:0 0 0 3px rgba(57,255,20,.15), 0 4px 16px rgba(57,255,20,.2);
+}
+.empty-state{
+  text-align:center; 
+  color:var(--muted-2); 
+  padding:32px 20px;
+  font-weight:500;
+  font-size:14px;
+}
+.player-name{font-weight:600; letter-spacing:-.01em;}
+
+/* Scrollable lists used in compact stat cards */
+.scroll-list{
+  /* pick a height that keeps the card balanced next to others */
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;              /* breathing room for scrollbar */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,1) 85%, rgba(0,0,0,.2));
+}
+
+/* Tighten list items slightly in scroll areas so more fit */
+.scroll-list .metric-item{
+  margin-bottom:10px;
+  padding:16px;
+}
+
+/* Optional: subtle custom scrollbar */
+.scroll-list::-webkit-scrollbar{
+  width: 8px;
+}
+.scroll-list::-webkit-scrollbar-track{
+  background: transparent;
+}
+.scroll-list::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.12);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.scroll-list:hover::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.22);
+}
+
+/* Firefox scrollbar */
+.scroll-list{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.22) transparent;
+}
+
+/* Mobile: keep it a bit shorter so it doesn't dominate */
+@media (max-width:720px){
+  .scroll-list{ max-height: 220px; }
+}
+
+/* --- Scrollable Leaderboard table --- */
+.scroll-table{
+  max-height: 840px;         /* adjust if you want taller/shorter */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding-top: 4px;          /* keeps sticky header from feeling jammed */
+  padding-right: 4px;        /* space for scrollbar */
+  border-radius: 16px;
+}
+
+/* Keep table metrics intact inside scroll area */
+.scroll-table table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;     /* preserve your nice row gaps */
+  margin: 0;
+}
+
+/* Sticky, non-squashed header */
+.scroll-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 5;                 /* bump it above body rows */
+  background: var(--panel);   /* solid backdrop */
+  box-shadow: 0 2px 4px rgba(0,0,0,.4); /* subtle shadow separation */
+
+  padding: 12px 16px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+
+/* Vertical centering so text doesn't look pinched */
+.scroll-table th,
+.scroll-table td{
+  vertical-align: middle;
+}
+
+/* Optional: match scrollbar look to the rest of the UI */
+.scroll-table::-webkit-scrollbar{ width: 8px; }
+.scroll-table::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.12);
+  border-radius: 8px;
+}
+.scroll-table:hover::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.25); }
+.scroll-table{ scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
+</style>
+</head>
+<body>
+  <div class="app">
+
+
+    <!-- Main -->
+    <main>
+      <div class="topbar">
+        <div class="title">
+          <h1>Torpedo Vintervargen</h1>
+          <small>2025 / 26 • Weekly stats</small>
+        </div>
+        <div class="header-card">
+          <div class="controls">
+            <button class="btn active" onclick="showView('total')">Total Season</button>
+            <button class="btn" onclick="showView('weekly')">Weekly View</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOTAL VIEW -->
+      <section id="totalView">
+        <div class="grid">
+          <div class="panel leaderboard">
+            <div class="section-title">🏆 Leaderboard</div>
+              <div class="scroll-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Rank</th><th>Player</th><th>Points</th>
+                      <th>Attendance</th><th>Goals</th><th>Assists</th><th>Clean Sheets</th><th>Turbotorped</th>
+                    </tr>
+                  </thead>
+                  <tbody id="leaderboardBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel hot-streak-card">
+            <div class="section-title">🔥 Hot Streak</div>
+            <div id="hotStreak"></div>
+          </div>
+
+          <div class="panel stat-card">
+            <div class="section-title">📊 Active Streaks</div>
+            <div id="activeStreaks" class="scroll-list"></div>
+          </div>
+
+          <div class="panel stat-card">
+	    <div class="section-title">🎯 Milestones</div>
+	    <div id="milestones" class="scroll-list"></div>
+	  </div>
+
+          <div class="panel stat-card">
+            <div class="section-title">📈 Biggest Climber</div>
+            <div id="biggestClimber"></div>
+          </div>
+
+          <div class="panel stat-card">
+            <div class="section-title">📅 Season Stats</div>
+            <div id="seasonStats"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- WEEKLY VIEW -->
+      <section id="weeklyView" style="display:none;">
+        <div class="panel" style="margin-bottom:18px;">
+          <div class="section-title">Week</div>
+          <div class="week-selector">
+            <select id="weekSelect" onchange="updateWeeklyView()"></select>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="panel leaderboard">
+            <div class="section-title">📋 Week Stats</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Player</th><th>Attendance</th><th>Goals</th><th>Assists</th><th>Clean Sheet</th><th>Turbotorped</th><th>Points</th>
+                </tr>
+              </thead>
+              <tbody id="weeklyStatsBody"></tbody>
+            </table>
+          </div>
+
+          <div class="panel hot-streak-card">
+            <div class="section-title">⭐ Weekly Top Team</div>
+            <div id="weeklyTeam"></div>
+          </div>
+
+          <div class="panel stat-card">
+            <div class="section-title">🆕 New Players</div>
+            <div id="newPlayers" class="scroll-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Aside -->
+    <aside class="aside">
+      <div class="panel widget">
+        <div class="section-title">Season Overview</div>
+        <div class="kpi">
+          <div class="ring" id="seasonRing" style="--p:0"><span id="seasonPct">0%</span></div>
+          <div>
+            <div class="badge">Live</div>
+            <div class="small" id="weeksText">0 of 0 weeks</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel widget">
+        <div class="section-title">Tip</div>
+        <div class="small">Use <b>Weekly View</b> to see the top 5 performers and any new joiners.</div>
+      </div>
+    </aside>
+  </div>
+
+<script>
+/* ------- Data (same structure as original) ------- */
+const weeklyData = [
+	{
+	  "week": 42,
+	  "date": "2025-10-14",
+	  "stats": [
+	    {"name": "Arvid", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
+	    {"name": "Chris", "attendance": 1, "goals": 2, "assists": 2, "cleanSheet": 8, "turbotorped": 0},
+	    {"name": "Mathias", "attendance": 1, "goals": 1, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Degen", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Marco", "attendance": 1, "goals": 2, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
+	    {"name": "Pontus", "attendance": 1, "goals": 2, "assists": 0, "cleanSheet": 8, "turbotorped": 0},
+	    {"name": "Lasse", "attendance": 1, "goals": 2, "assists": 3, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Maxim", "attendance": 1, "goals": 1, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Ayman", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 7, "turbotorped": 1},
+	    {"name": "Payam", "attendance": 1, "goals": 3, "assists": 3, "cleanSheet": 8, "turbotorped": 0},
+	    {"name": "Saman", "attendance": 1, "goals": 1, "assists": 2, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Andreas B", "attendance": 1, "goals": 2, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Johnson", "attendance": 1, "goals": 4, "assists": 1, "cleanSheet": 7, "turbotorped": 0},
+	    {"name": "Emil V", "attendance": 1, "goals": 2, "assists": 2, "cleanSheet": 8, "turbotorped": 0},
+	    {"name": "Simon A", "attendance": 1, "goals": 3, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Anton", "attendance": 1, "goals": 1, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Oskar", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
+	    {"name": "Erik Ö", "attendance": 1, "goals": 4, "assists": 3, "cleanSheet": 8, "turbotorped": 0},
+	    {"name": "Patrik", "attendance": 1, "goals": 1, "assists": 2, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Alex B", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
+	    {"name": "Andres", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 7, "turbotorped": 0},
+	    {"name": "Kim", "attendance": 1, "goals": 2, "assists": 1, "cleanSheet": 8, "turbotorped": 0}
+	  ]
+	}
+];
+
+let currentView='total';
+let currentWeek=weeklyData.length-1;
+
+/* ------- Helpers ------- */
+function calculateTotalStats(){
+  const playerStats={};
+  weeklyData.forEach(week=>{
+    week.stats.forEach(p=>{
+      if(!playerStats[p.name]){
+        playerStats[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0,weeklyData:[]};
+      }
+      playerStats[p.name].attendance+=p.attendance;
+      playerStats[p.name].goals+=p.goals;
+      playerStats[p.name].assists+=p.assists;
+      playerStats[p.name].cleanSheets+=p.cleanSheet;
+      playerStats[p.name].turbotorped+=p.turbotorped;
+      playerStats[p.name].weeklyData.push({week:week.week,...p});
+    });
+  });
+  return playerStats;
+}
+function calculatePoints(s){return s.attendance+s.goals+s.assists+s.cleanSheets+(s.turbotorped*5)}
+
+/* ------- Renderers ------- */
+function renderLeaderboard(){
+  const stats=calculateTotalStats();
+  const leaderboard=Object.entries(stats)
+    .map(([name,s])=>({name,...s,points:calculatePoints(s)}))
+    .sort((a,b)=>b.points-a.points);
+
+  // Previous ranks (up/down)
+  let previousRankings={};
+  if(weeklyData.length>1){
+    const prev={};
+    weeklyData.slice(0,-1).forEach(w=>{
+      w.stats.forEach(p=>{
+        if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
+        prev[p.name].attendance+=p.attendance;
+        prev[p.name].goals+=p.goals;
+        prev[p.name].assists+=p.assists;
+        prev[p.name].cleanSheets+=p.cleanSheet;
+        prev[p.name].turbotorped+=p.turbotorped;
+      })
+    });
+    const prevBoard=Object.entries(prev).map(([name,s])=>({name,points:calculatePoints(s)})).sort((a,b)=>b.points-a.points);
+    prevBoard.forEach((p,i)=>previousRankings[p.name]=i+1);
+  }
+
+  const tbody=document.getElementById('leaderboardBody');
+  tbody.innerHTML = leaderboard.map((p,i)=>{
+    const currentRank=i+1, prevRank=previousRankings[p.name];
+    let delta='';
+    if(prevRank){
+      const d=prevRank-currentRank;
+      if(d>0) delta=`<span class="rank-change rank-up">▲${d}</span>`;
+      else if(d<0) delta=`<span class="rank-change rank-down">▼${Math.abs(d)}</span>`;
+    }
+    return `<tr>
+      <td><span class="rank">${currentRank}</span>${delta}</td>
+      <td><span class="player-name">${p.name}</span></td>
+      <td><span class="points">${p.points}</span></td>
+      <td>${p.attendance}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.cleanSheets}</td><td>${p.turbotorped}</td>
+    </tr>`;
+  }).join('');
+
+  // Aside overview ring
+  const weeksPlayed=weeklyData.length;
+  const targetWeeks=Math.max(10, weeksPlayed); // arbitrary target to show progress ring
+  const pct=Math.round((weeksPlayed/targetWeeks)*100);
+  const ring=document.getElementById('seasonRing');
+  const pctEl=document.getElementById('seasonPct');
+  document.getElementById('weeksText').textContent=`${weeksPlayed} of ${targetWeeks} weeks`;
+  ring.style.setProperty('--p', pct);
+  pctEl.textContent=pct+'%';
+
+  return leaderboard;
+}
+function calculateStreaks(playerStats){
+  const streaks=[];
+  Object.entries(playerStats).forEach(([name,stats])=>{
+    // attendance
+    let currentA=0,longA=0,tmpA=0;
+    stats.weeklyData.forEach((w,i)=>{
+      if(w.attendance===1){ tmpA++; if(i===stats.weeklyData.length-1 || stats.weeklyData[i+1].attendance===1) currentA=tmpA; }
+      else tmpA=0;
+      longA=Math.max(longA,tmpA);
+    });
+    // contribution
+    let currentC=0,longC=0,tmpC=0;
+    stats.weeklyData.forEach((w,i)=>{
+      if(w.goals>0 || w.assists>0){ tmpC++; if(i===stats.weeklyData.length-1 || (stats.weeklyData[i+1].goals>0 || stats.weeklyData[i+1].assists>0)) currentC=tmpC; }
+      else tmpC=0;
+      longC=Math.max(longC,tmpC);
+    });
+    if(currentA>0 || currentC>0) streaks.push({name,currentAttendance:currentA,longestAttendance:longA,currentContribution:currentC,longestContribution:longC});
+  });
+  return streaks;
+}
+function renderActiveStreaks(){
+  const s=calculateStreaks(calculateTotalStats());
+  const active=s.filter(x=>x.currentAttendance>=2 || x.currentContribution>=2)
+    .sort((a,b)=>(b.currentAttendance+b.currentContribution)-(a.currentAttendance+a.currentContribution));
+  const el=document.getElementById('activeStreaks');
+  if(active.length===0){ el.innerHTML='<div class="empty-state">No active streaks yet</div>'; return; }
+  el.innerHTML=active.slice(0,5).map(st=>`
+    <div class="metric-item">
+      <div class="metric-player">${st.name}</div>
+      <div class="metric-value">
+        ${st.currentAttendance>0?`🎯 ${st.currentAttendance} weeks attendance`:''}
+        ${st.currentAttendance>0 && st.currentContribution>0?'<br>':''}
+        ${st.currentContribution>0?`⚽ ${st.currentContribution} weeks contributing`:''}
+      </div>
+    </div>`).join('');
+}
+function renderHotStreak(){
+  const stats=calculateTotalStats();
+  const recent=3;
+  const form=Object.entries(stats).map(([name,s])=>{
+    const r=s.weeklyData.slice(-recent);
+    const pts=r.reduce((sum,w)=>sum+w.attendance+w.goals+w.assists+w.cleanSheet+w.turbotorped*5,0);
+    return {name,recentPoints:pts,weeksPlayed:r.filter(x=>x.attendance===1).length};
+  }).filter(p=>p.weeksPlayed>=2).sort((a,b)=>b.recentPoints-a.recentPoints);
+  const el=document.getElementById('hotStreak');
+  if(form.length===0){ el.innerHTML='<div class="empty-state">Not enough data yet</div>'; return; }
+  const top=form[0];
+  el.innerHTML=`<div class="hot-streak"><div class="hot-streak-player">🔥 ${top.name}</div><div class="hot-streak-desc">${top.recentPoints} points in last ${recent} weeks</div></div>`;
+}
+function renderMilestones(){
+  const ps=calculateTotalStats(); const out=[];
+  const th={goals:[1,5,10,25,50],assists:[1,5,10,25],points:[10,25,50,100],attendance:[5,10,20]};
+  Object.entries(ps).forEach(([name,s])=>{
+    th.goals.forEach(t=>{ if(s.goals>=t){ const prev=s.goals-(s.weeklyData.at(-1)?.goals||0); if(prev<t) out.push({name,type:'Goals',value:t}); }});
+    th.assists.forEach(t=>{ if(s.assists>=t){ const prev=s.assists-(s.weeklyData.at(-1)?.assists||0); if(prev<t) out.push({name,type:'Assists',value:t}); }});
+    const tp=calculatePoints(s);
+    th.points.forEach(t=>{ if(tp>=t){ const lw=s.weeklyData.at(-1); const lwPts=lw?(lw.attendance+lw.goals+lw.assists+lw.cleanSheet+lw.turbotorped*5):0; if(tp-lwPts<t) out.push({name,type:'Points',value:t}); }});
+    th.attendance.forEach(t=>{ if(s.attendance>=t && s.attendance-(s.weeklyData.at(-1)?.attendance||0)<t) out.push({name,type:'Attendance',value:t}); });
+  });
+  const el=document.getElementById('milestones');
+  el.innerHTML = out.length? out.map(m=>`
+    <div class="metric-item"><div class="metric-player">${m.name}</div><div class="metric-value">🎉 ${m.value} ${m.type}</div></div>`).join('')
+    : '<div class="empty-state">No recent milestones</div>';
+}
+function renderBiggestClimber(){
+  const ps=calculateTotalStats();
+  if(weeklyData.length<2){ document.getElementById('biggestClimber').innerHTML='<div class="empty-state">Need more weeks of data</div>'; return;}
+  const prev={};
+  weeklyData.slice(0,-1).forEach(w=>w.stats.forEach(p=>{
+    if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
+    prev[p.name].attendance+=p.attendance; prev[p.name].goals+=p.goals; prev[p.name].assists+=p.assists; prev[p.name].cleanSheets+=p.cleanSheet; prev[p.name].turbotorped+=p.turbotorped;
+  }));
+  const prevL=Object.entries(prev).map(([name,s])=>({name,points:calculatePoints(s)})).sort((a,b)=>b.points-a.points);
+  const prevRanks={}; prevL.forEach((p,i)=>prevRanks[p.name]=i+1);
+  const currentL=Object.entries(ps).map(([name,s])=>({name,points:calculatePoints(s)})).sort((a,b)=>b.points-a.points);
+  let win=null,climb=0;
+  currentL.forEach((p,i)=>{ const r=i+1, pr=prevRanks[p.name]||999, d=pr-r; if(d>climb){climb=d; win=p.name;}});
+  const el=document.getElementById('biggestClimber');
+  el.innerHTML = (!win || climb===0) ? '<div class="empty-state">No significant rank changes</div>' :
+    `<div class="metric-item"><div class="metric-player">${win}</div><div class="metric-value">📈 Climbed ${climb} position${climb>1?'s':''}</div></div>`;
+}
+function renderSeasonStats(){
+  const ps=calculateTotalStats();
+  const goals=Object.values(ps).reduce((s,p)=>s+p.goals,0);
+  const games=weeklyData.length; const players=Object.keys(ps).length;
+  const el=document.getElementById('seasonStats');
+  el.innerHTML = `
+    <div class="metric-item"><div class="metric-player">Total Weeks</div><div class="metric-value">${games}</div></div>
+    <div class="metric-item"><div class="metric-player">Total Players</div><div class="metric-value">${players}</div></div>
+    <div class="metric-item"><div class="metric-player">Total Goals</div><div class="metric-value">${goals}</div></div>`;
+}
+function populateWeekSelector(){
+  const sel=document.getElementById('weekSelect');
+  sel.innerHTML = weeklyData.map((w,i)=>`<option value="${i}">Week ${w.week} • ${w.date}</option>`).reverse().join('');
+  sel.value=currentWeek;
+}
+function updateWeeklyView(){
+  currentWeek=parseInt(document.getElementById('weekSelect').value);
+  const week=weeklyData[currentWeek];
+  const tbody=document.getElementById('weeklyStatsBody');
+  tbody.innerHTML = week.stats.map(p=>{
+    const pts=p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5);
+    return `<tr>
+      <td><span class="player-name">${p.name}</span></td>
+      <td>${p.attendance?'✓':'✗'}</td>
+      <td>${p.goals}</td><td>${p.assists}</td>
+      <td>${p.cleanSheet?'✓':'✗'}</td>
+      <td>${p.turbotorped?'⭐':''}</td>
+      <td><span class="points">${pts}</span></td>
+    </tr>`;
+  }).join('');
+  const top = week.stats.map(p=>({...p,weekPoints:p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5)}))
+    .filter(p=>p.attendance===1).sort((a,b)=>b.weekPoints-a.weekPoints).slice(0,5);
+  document.getElementById('weeklyTeam').innerHTML = `
+    <div class="weekly-team">
+      ${top.map(p=>`<div class="team-player"><div class="team-player-name">${p.name}</div><div class="team-player-stats">${p.goals}G ${p.assists}A ${p.turbotorped?'⭐':''}</div></div>`).join('')}
+    </div>`;
+  const prevNames=new Set(); weeklyData.slice(0,currentWeek).forEach(w=>w.stats.forEach(p=>prevNames.add(p.name)));
+  const newcomers=week.stats.filter(p=>!prevNames.has(p.name));
+  const np=document.getElementById('newPlayers');
+  np.innerHTML = newcomers.length? newcomers.map(p=>`<div class="metric-item"><div class="metric-player new-player">🆕 ${p.name}</div></div>`).join('') : '<div class="empty-state">No new players this week</div>';
+}
+function showView(view){
+  document.getElementById('totalView').style.display = (view==='total')?'block':'none';
+  document.getElementById('weeklyView').style.display = (view==='weekly')?'block':'none';
+  document.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(view==='total'){
+    renderLeaderboard(); renderActiveStreaks(); renderHotStreak(); renderMilestones(); renderBiggestClimber(); renderSeasonStats();
+  }else{
+    populateWeekSelector(); updateWeeklyView();
+  }
+}
+
+/* Initial paint */
+renderLeaderboard();
+renderActiveStreaks();
+renderHotStreak();
+renderMilestones();
+renderBiggestClimber();
+renderSeasonStats();
+populateWeekSelector();
+</script>
+</body>
+</html>
