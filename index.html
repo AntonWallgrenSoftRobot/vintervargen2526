@@ -707,13 +707,51 @@ const weeklyData = [
   }
 ];
 
+/* ------- NEW: merge Tue/Thu entries per ISO date within a week ------- */
+function weekdayAbbr(iso){
+  const d = new Date(iso + 'T00:00:00Z'); // keep deterministic across TZs
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()];
+}
+function renderStars(n){ return n > 0 ? '⭐'.repeat(n) : ''; }
+function getMergedWeeks(){
+  const byWeek = new Map();
+  weeklyData.forEach(entry=>{
+    const key = entry.week;
+    const day = weekdayAbbr(entry.date);
+    const node = byWeek.get(key) || { week: entry.week, days: new Set(), statsMap: new Map() };
+    node.days.add(day);
+    entry.stats.forEach(p=>{
+      const cur = node.statsMap.get(p.name) || {name:p.name, attendance:0, goals:0, assists:0, cleanSheet:0, turbotorped:0};
+      cur.attendance += p.attendance; // 0..2 total for that week
+      cur.goals += p.goals;
+      cur.assists += p.assists;
+      cur.cleanSheet += p.cleanSheet;
+      cur.turbotorped += p.turbotorped;
+      node.statsMap.set(p.name, cur);
+    });
+    byWeek.set(key, node);
+  });
+  return Array.from(byWeek.values())
+    .sort((a,b)=>a.week-b.week)
+    .map(w=>({
+      week: w.week,
+      days: Array.from(w.days).sort((a,b)=>{
+        if (a==='Tue' && b!=='Tue') return -1;
+        if (b==='Tue' && a!=='Tue') return 1;
+        return a.localeCompare(b);
+      }),
+      stats: Array.from(w.statsMap.values())
+    }));
+}
+const mergedWeeks = getMergedWeeks();
+
 let currentView='total';
-let currentWeek=weeklyData.length-1;
+let currentWeek=mergedWeeks.length-1;
 
 /* ------- Helpers ------- */
 function calculateTotalStats(){
   const playerStats={};
-  weeklyData.forEach(week=>{
+  mergedWeeks.forEach(week=>{
     week.stats.forEach(p=>{
       if(!playerStats[p.name]){
         playerStats[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0,weeklyData:[]};
@@ -739,9 +777,9 @@ function renderLeaderboard(){
 
   // Previous ranks (up/down)
   let previousRankings={};
-  if(weeklyData.length>1){
+  if(mergedWeeks.length>1){
     const prev={};
-    weeklyData.slice(0,-1).forEach(w=>{
+    mergedWeeks.slice(0,-1).forEach(w=>{
       w.stats.forEach(p=>{
         if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
         prev[p.name].attendance+=p.attendance;
@@ -773,7 +811,7 @@ function renderLeaderboard(){
   }).join('');
 
   // Aside overview ring
-  const weeksPlayed=weeklyData.length;
+  const weeksPlayed=mergedWeeks.length;
   const targetWeeks=Math.max(25, weeksPlayed);
   const pct=Math.round((weeksPlayed/targetWeeks)*100);
   const ring=document.getElementById('seasonRing');
@@ -790,7 +828,7 @@ function calculateStreaks(playerStats){
     // attendance
     let currentA=0,longA=0,tmpA=0;
     stats.weeklyData.forEach((w,i)=>{
-      if(w.attendance===1){ tmpA++; if(i===stats.weeklyData.length-1 || stats.weeklyData[i+1].attendance===1) currentA=tmpA; }
+      if(w.attendance>0){ tmpA++; if(i===stats.weeklyData.length-1 || stats.weeklyData[i+1].attendance>0) currentA=tmpA; }
       else tmpA=0;
       longA=Math.max(longA,tmpA);
     });
@@ -827,7 +865,7 @@ function renderHotStreak(){
   const form=Object.entries(stats).map(([name,s])=>{
     const r=s.weeklyData.slice(-recent);
     const pts=r.reduce((sum,w)=>sum+w.attendance+w.goals+w.assists+w.cleanSheet+w.turbotorped*5,0);
-    return {name,recentPoints:pts,weeksPlayed:r.filter(x=>x.attendance===1).length};
+    return {name,recentPoints:pts,weeksPlayed:r.filter(x=>x.attendance>0).length};
   }).filter(p=>p.weeksPlayed>=2).sort((a,b)=>b.recentPoints-a.recentPoints);
   const el=document.getElementById('hotStreak');
   if(form.length===0){ el.innerHTML='<div class="empty-state">Not enough data yet</div>'; return; }
@@ -851,9 +889,9 @@ function renderMilestones(){
 }
 function renderBiggestClimber(){
   const ps=calculateTotalStats();
-  if(weeklyData.length<2){ document.getElementById('biggestClimber').innerHTML='<div class="empty-state">Need more weeks of data</div>'; return;}
+  if(mergedWeeks.length<2){ document.getElementById('biggestClimber').innerHTML='<div class="empty-state">Need more weeks of data</div>'; return;}
   const prev={};
-  weeklyData.slice(0,-1).forEach(w=>w.stats.forEach(p=>{
+  mergedWeeks.slice(0,-1).forEach(w=>w.stats.forEach(p=>{
     if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
     prev[p.name].attendance+=p.attendance; prev[p.name].goals+=p.goals; prev[p.name].assists+=p.assists; prev[p.name].cleanSheets+=p.cleanSheet; prev[p.name].turbotorped+=p.turbotorped;
   }));
@@ -869,7 +907,7 @@ function renderBiggestClimber(){
 function renderSeasonStats(){
   const ps=calculateTotalStats();
   const goals=Object.values(ps).reduce((s,p)=>s+p.goals,0);
-  const games=weeklyData.length; const players=Object.keys(ps).length;
+  const games=mergedWeeks.length; const players=Object.keys(ps).length;
   const el=document.getElementById('seasonStats');
   el.innerHTML = `
     <div class="metric-item"><div class="metric-player">Total Weeks</div><div class="metric-value">${games}</div></div>
@@ -878,12 +916,15 @@ function renderSeasonStats(){
 }
 function populateWeekSelector(){
   const sel=document.getElementById('weekSelect');
-  sel.innerHTML = weeklyData.map((w,i)=>`<option value="${i}">Week ${w.week} • ${w.date}</option>`).reverse().join('');
+  sel.innerHTML = mergedWeeks.map((w,i)=>{
+    const label = `Week ${w.week}, ${w.days.join(' + ')}`;
+    return `<option value="${i}">${label}</option>`;
+  }).reverse().join('');
   sel.value=currentWeek;
 }
 function pickWeeklyTopTeam(week){
   const players = week.stats
-    .filter(p => p.attendance === 1)
+    .filter(p => p.attendance > 0)
     .map(p => ({
       ...p,
       ga: p.goals + p.assists,
@@ -931,7 +972,7 @@ function pickWeeklyTopTeam(week){
 }
 function updateWeeklyView(){
   currentWeek=parseInt(document.getElementById('weekSelect').value);
-  const week=weeklyData[currentWeek];
+  const week=mergedWeeks[currentWeek];
   const tbody=document.getElementById('weeklyStatsBody');
 
   tbody.innerHTML = week.stats.map(p=>{
@@ -941,7 +982,7 @@ function updateWeeklyView(){
       <td>${p.goals}</td>
       <td>${p.assists}</td>
       <td>${p.cleanSheet}</td>
-      <td>${p.turbotorped ? '⭐' : ''}</td>
+      <td>${renderStars(p.turbotorped)}</td>
       <td><span class="points">${pts}</span></td>
     </tr>`;
   }).join('');
@@ -956,13 +997,13 @@ function updateWeeklyView(){
             ${p.role === 'ATT' ? 'ATT' : (p.role === 'DEF' ? 'DEF' : '★')}
             • ${p.goals}G ${p.assists}A
             • ${p.cleanSheet}CS
-            ${p.turbotorped ? '• ⭐' : ''}
+            ${p.turbotorped ? '• ' + renderStars(p.turbotorped) : ''}
           </div>
         </div>
       `).join('')}
     </div>`;
 
-  const prevNames=new Set(); weeklyData.slice(0,currentWeek).forEach(w=>w.stats.forEach(p=>prevNames.add(p.name)));
+  const prevNames=new Set(); mergedWeeks.slice(0,currentWeek).forEach(w=>w.stats.forEach(p=>prevNames.add(p.name)));
   const newcomers=week.stats.filter(p=>!prevNames.has(p.name));
   const np=document.getElementById('newPlayers');
   np.innerHTML = newcomers.length? newcomers.map(p=>`<div class="metric-item"><div class="metric-player new-player">🆕 ${p.name}</div></div>`).join('') : '<div class="empty-state">No new players this week</div>';
