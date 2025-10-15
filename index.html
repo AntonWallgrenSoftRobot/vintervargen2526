@@ -37,7 +37,7 @@ body{
     var(--bg);
   color:var(--white);
   letter-spacing:-.01em;
-  overflow-x:hidden;
+  /* overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 }
@@ -413,7 +413,7 @@ td{padding:16px; font-size:14px; font-weight:500;}
   padding:8px 14px; border-radius:999px; font-weight:700; font-size:12px;
   background:linear-gradient(135deg, rgba(255,45,85,.2), rgba(255,45,85,.12)); 
   border:1px solid rgba(255,45,85,.4);
-  box-shadow:0 4px 12px rgba(255,45,85,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow:0 4px 12px rgba(255,255,255,.2), inset 0 1px 0 rgba(255,255,255,.08);
   animation:pulse-badge 2s ease-in-out infinite;
 }
 @keyframes pulse-badge{
@@ -461,10 +461,9 @@ td{padding:16px; font-size:14px; font-weight:500;}
 
 /* Scrollable lists used in compact stat cards */
 .scroll-list{
-  /* pick a height that keeps the card balanced next to others */
   max-height: 520px;
   overflow-y: auto;
-  padding-right: 4px;              /* breathing room for scrollbar */
+  padding-right: 4px;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,1) 85%, rgba(0,0,0,.2));
@@ -477,73 +476,74 @@ td{padding:16px; font-size:14px; font-weight:500;}
 }
 
 /* Optional: subtle custom scrollbar */
-.scroll-list::-webkit-scrollbar{
-  width: 8px;
-}
-.scroll-list::-webkit-scrollbar-track{
-  background: transparent;
-}
+.scroll-list::-webkit-scrollbar{ width: 8px; }
+.scroll-list::-webkit-scrollbar-track{ background: transparent; }
 .scroll-list::-webkit-scrollbar-thumb{
   background: rgba(255,255,255,.12);
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,.08);
 }
-.scroll-list:hover::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,.22);
-}
+.scroll-list:hover::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.22); }
 
 /* Firefox scrollbar */
-.scroll-list{
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,.22) transparent;
-}
+.scroll-list{ scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
 
 /* Mobile: keep it a bit shorter so it doesn't dominate */
 @media (max-width:720px){
   .scroll-list{ max-height: 220px; }
 }
 
-/* --- Scrollable Leaderboard table --- */
+/* --- Scrollable Leaderboard / Tables --- */
 .scroll-table{
-  max-height: 840px;         /* adjust if you want taller/shorter */
+  max-height: 840px;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  padding-top: 4px;          /* keeps sticky header from feeling jammed */
-  padding-right: 4px;        /* space for scrollbar */
+  padding-top: 4px;
+  padding-right: 4px;
   border-radius: 16px;
+}
+
+/* Let tables scroll horizontally on small screens */
+@media (max-width: 820px){
+  .scroll-table{ overflow-x: auto; }
+  .scroll-table table{ min-width: 680px; } /* keeps columns readable */
+}
+
+/* Weekly table wrapper (adds horizontal scroll when needed) */
+.table-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.table-wrap table{ width:100%; }
+@media (max-width:820px){
+  .table-wrap table{ min-width: 560px; } /* fewer cols than leaderboard */
 }
 
 /* Keep table metrics intact inside scroll area */
 .scroll-table table{
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 8px;     /* preserve your nice row gaps */
+  border-spacing: 0 8px;
   margin: 0;
 }
 
-/* Sticky, non-squashed header */
+/* Sticky header */
 .scroll-table thead th{
   position: sticky;
   top: 0;
-  z-index: 5;                 /* bump it above body rows */
-  background: var(--panel);   /* solid backdrop */
-  box-shadow: 0 2px 4px rgba(0,0,0,.4); /* subtle shadow separation */
-
+  z-index: 5;
+  background: var(--panel);
+  box-shadow: 0 2px 4px rgba(0,0,0,.4);
   padding: 12px 16px;
   line-height: 1.25;
   white-space: nowrap;
 }
 
-
-/* Vertical centering so text doesn't look pinched */
 .scroll-table th,
-.scroll-table td{
-  vertical-align: middle;
-}
+.scroll-table td{ vertical-align: middle; }
 
-/* Optional: match scrollbar look to the rest of the UI */
 .scroll-table::-webkit-scrollbar{ width: 8px; }
 .scroll-table::-webkit-scrollbar-thumb{
   background: rgba(255,255,255,.12);
@@ -555,7 +555,6 @@ td{padding:16px; font-size:14px; font-weight:500;}
 </head>
 <body>
   <div class="app">
-
 
     <!-- Main -->
     <main>
@@ -601,9 +600,9 @@ td{padding:16px; font-size:14px; font-weight:500;}
           </div>
 
           <div class="panel stat-card">
-	    <div class="section-title">🎯 Milestones</div>
-	    <div id="milestones" class="scroll-list"></div>
-	  </div>
+            <div class="section-title">🎯 Milestones</div>
+            <div id="milestones" class="scroll-list"></div>
+          </div>
 
           <div class="panel stat-card">
             <div class="section-title">📈 Biggest Climber</div>
@@ -629,14 +628,17 @@ td{padding:16px; font-size:14px; font-weight:500;}
         <div class="grid">
           <div class="panel leaderboard">
             <div class="section-title">📋 Week Stats</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Player</th><th>Attendance</th><th>Goals</th><th>Assists</th><th>Clean Sheet</th><th>Turbotorped</th><th>Points</th>
-                </tr>
-              </thead>
-              <tbody id="weeklyStatsBody"></tbody>
-            </table>
+            <!-- WRAP weekly table so it can scroll horizontally on mobile -->
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Player</th><th>Goals</th><th>Assists</th><th>Clean Sheets</th><th>Turbotorped</th><th>Points</th>
+                  </tr>
+                </thead>
+                <tbody id="weeklyStatsBody"></tbody>
+              </table>
+            </div>
           </div>
 
           <div class="panel hot-streak-card">
@@ -675,34 +677,34 @@ td{padding:16px; font-size:14px; font-weight:500;}
 <script>
 /* ------- Data (same structure as original) ------- */
 const weeklyData = [
-	{
-	  "week": 42,
-	  "date": "2025-10-14",
-	  "stats": [
-	    {"name": "Arvid", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
-	    {"name": "Chris", "attendance": 1, "goals": 2, "assists": 2, "cleanSheet": 8, "turbotorped": 0},
-	    {"name": "Mathias", "attendance": 1, "goals": 1, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Degen", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Marco", "attendance": 1, "goals": 2, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
-	    {"name": "Pontus", "attendance": 1, "goals": 2, "assists": 0, "cleanSheet": 8, "turbotorped": 0},
-	    {"name": "Lasse", "attendance": 1, "goals": 2, "assists": 3, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Maxim", "attendance": 1, "goals": 1, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Ayman", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 7, "turbotorped": 1},
-	    {"name": "Payam", "attendance": 1, "goals": 3, "assists": 3, "cleanSheet": 8, "turbotorped": 0},
-	    {"name": "Saman", "attendance": 1, "goals": 1, "assists": 2, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Andreas B", "attendance": 1, "goals": 2, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Johnson", "attendance": 1, "goals": 4, "assists": 1, "cleanSheet": 7, "turbotorped": 0},
-	    {"name": "Emil V", "attendance": 1, "goals": 2, "assists": 2, "cleanSheet": 8, "turbotorped": 0},
-	    {"name": "Simon A", "attendance": 1, "goals": 3, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Anton", "attendance": 1, "goals": 1, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Oskar", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
-	    {"name": "Erik Ö", "attendance": 1, "goals": 4, "assists": 3, "cleanSheet": 8, "turbotorped": 0},
-	    {"name": "Patrik", "attendance": 1, "goals": 1, "assists": 2, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Alex B", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
-	    {"name": "Andres", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 7, "turbotorped": 0},
-	    {"name": "Kim", "attendance": 1, "goals": 2, "assists": 1, "cleanSheet": 8, "turbotorped": 0}
-	  ]
-	}
+  {
+    "week": 42,
+    "date": "2025-10-14",
+    "stats": [
+      {"name": "Arvid", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
+      {"name": "Chris", "attendance": 1, "goals": 2, "assists": 2, "cleanSheet": 8, "turbotorped": 0},
+      {"name": "Mathias", "attendance": 1, "goals": 1, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Degen", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Marco", "attendance": 1, "goals": 2, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
+      {"name": "Pontus", "attendance": 1, "goals": 2, "assists": 0, "cleanSheet": 8, "turbotorped": 0},
+      {"name": "Lasse", "attendance": 1, "goals": 2, "assists": 3, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Maxim", "attendance": 1, "goals": 1, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Ayman", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 7, "turbotorped": 1},
+      {"name": "Payam", "attendance": 1, "goals": 3, "assists": 3, "cleanSheet": 8, "turbotorped": 0},
+      {"name": "Saman", "attendance": 1, "goals": 1, "assists": 2, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Andreas B", "attendance": 1, "goals": 2, "assists": 1, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Johnson", "attendance": 1, "goals": 4, "assists": 1, "cleanSheet": 7, "turbotorped": 0},
+      {"name": "Emil V", "attendance": 1, "goals": 2, "assists": 2, "cleanSheet": 8, "turbotorped": 0},
+      {"name": "Simon A", "attendance": 1, "goals": 3, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Anton", "attendance": 1, "goals": 1, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Oskar", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 7, "turbotorped": 0},
+      {"name": "Erik Ö", "attendance": 1, "goals": 4, "assists": 3, "cleanSheet": 8, "turbotorped": 0},
+      {"name": "Patrik", "attendance": 1, "goals": 1, "assists": 2, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Alex B", "attendance": 1, "goals": 0, "assists": 0, "cleanSheet": 4, "turbotorped": 0},
+      {"name": "Andres", "attendance": 1, "goals": 0, "assists": 1, "cleanSheet": 7, "turbotorped": 0},
+      {"name": "Kim", "attendance": 1, "goals": 2, "assists": 1, "cleanSheet": 8, "turbotorped": 0}
+    ]
+  }
 ];
 
 let currentView='total';
@@ -772,7 +774,7 @@ function renderLeaderboard(){
 
   // Aside overview ring
   const weeksPlayed=weeklyData.length;
-  const targetWeeks=Math.max(25, weeksPlayed); // arbitrary target to show progress ring
+  const targetWeeks=Math.max(25, weeksPlayed);
   const pct=Math.round((weeksPlayed/targetWeeks)*100);
   const ring=document.getElementById('seasonRing');
   const pctEl=document.getElementById('seasonPct');
@@ -917,7 +919,7 @@ function pickWeeklyTopTeam(week){
     if (!taken.has(p.name)) { team.push({...p, role:'MVP'}); taken.add(p.name); break; }
   }
 
-  // Fallbacks: if any slots unfilled (e.g., too few players), fill by next-best points
+  // Fallbacks
   if (team.length < 5) {
     for (const p of byPts) {
       if (!taken.has(p.name)) { team.push({...p, role:'FLEX'}); taken.add(p.name); }
@@ -931,32 +933,35 @@ function updateWeeklyView(){
   currentWeek=parseInt(document.getElementById('weekSelect').value);
   const week=weeklyData[currentWeek];
   const tbody=document.getElementById('weeklyStatsBody');
+
   tbody.innerHTML = week.stats.map(p=>{
     const pts=p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5);
     return `<tr>
       <td><span class="player-name">${p.name}</span></td>
-      <td>${p.attendance?'✓':'✗'}</td>
-      <td>${p.goals}</td><td>${p.assists}</td>
-      <td>${p.cleanSheet?'✓':'✗'}</td>
-      <td>${p.turbotorped?'⭐':''}</td>
+      <td>${p.goals}</td>
+      <td>${p.assists}</td>
+      <td>${p.cleanSheet}</td>
+      <td>${p.turbotorped ? '⭐' : ''}</td>
       <td><span class="points">${pts}</span></td>
     </tr>`;
   }).join('');
-	const team = pickWeeklyTopTeam(week);
-	document.getElementById('weeklyTeam').innerHTML = `
-	  <div class="weekly-team">
-	    ${team.map(p => `
-	      <div class="team-player">
-		<div class="team-player-name">${p.name}</div>
-		<div class="team-player-stats">
-		  ${p.role === 'ATT' ? 'ATT' : (p.role === 'DEF' ? 'DEF' : '★')}
-		  • ${p.goals}G ${p.assists}A
-		  • ${p.cleanSheet}CS
-		  ${p.turbotorped ? '• ⭐' : ''}
-		</div>
-	      </div>
-	    `).join('')}
-	  </div>`;
+
+  const team = pickWeeklyTopTeam(week);
+  document.getElementById('weeklyTeam').innerHTML = `
+    <div class="weekly-team">
+      ${team.map(p => `
+        <div class="team-player">
+          <div class="team-player-name">${p.name}</div>
+          <div class="team-player-stats">
+            ${p.role === 'ATT' ? 'ATT' : (p.role === 'DEF' ? 'DEF' : '★')}
+            • ${p.goals}G ${p.assists}A
+            • ${p.cleanSheet}CS
+            ${p.turbotorped ? '• ⭐' : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+
   const prevNames=new Set(); weeklyData.slice(0,currentWeek).forEach(w=>w.stats.forEach(p=>prevNames.add(p.name)));
   const newcomers=week.stats.filter(p=>!prevNames.has(p.name));
   const np=document.getElementById('newPlayers');
