@@ -280,6 +280,18 @@ td{padding:16px; font-size:14px; font-weight:500;}
   font-size:11px; padding:5px 8px; border-radius:10px; margin-left:10px; 
   font-weight:700; border:1px solid transparent;
   display:inline-block;
+  white-space:nowrap;
+}
+@media (max-width:720px){
+  .rank-change{
+    font-size:10px;
+    padding:4px 6px;
+    margin-left:6px;
+  }
+  .rank{
+    font-size:15px;
+    padding:6px 10px;
+  }
 }
 .rank-up{
   color:var(--green); 
@@ -429,16 +441,21 @@ td{padding:16px; font-size:14px; font-weight:500;}
 .week-selector{margin-bottom:20px; text-align:center}
 .week-selector select{
   padding:14px 20px; 
-  background:linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  background:var(--panel);
   color:var(--white);
-  border:1px solid var(--border); 
-  border-radius:14px; 
-  font-weight:600; 
+  border:1px solid var(--border);
+  border-radius:14px;
+  font-weight:600;
   outline:none;
   cursor:pointer;
   transition:all .3s cubic-bezier(.4,0,.2,1);
   font-size:14px;
   box-shadow:var(--shadow-sm);
+}
+.week-selector select option{
+  background:var(--panel);
+  color:var(--white);
+  padding:10px;
 }
 .week-selector select:hover{
   border-color:rgba(57,255,20,.35);
@@ -566,7 +583,7 @@ td{padding:16px; font-size:14px; font-weight:500;}
         <div class="header-card">
           <div class="controls">
             <button class="btn active" onclick="showView('total')">Total Season</button>
-            <button class="btn" onclick="showView('weekly')">Weekly View</button>
+            <button class="btn" onclick="showView('weekly')">Practice View</button>
           </div>
         </div>
       </div>
@@ -621,7 +638,7 @@ td{padding:16px; font-size:14px; font-weight:500;}
         <div class="panel" style="margin-bottom:18px;">
           <div class="section-title">Week</div>
           <div class="week-selector">
-            <select id="weekSelect" onchange="updateWeeklyView()"></select>
+            <select id="weekSelect" onchange="updatePracticeView()"></select>
           </div>
         </div>
 
@@ -669,7 +686,7 @@ td{padding:16px; font-size:14px; font-weight:500;}
 
       <div class="panel widget">
         <div class="section-title">Tip</div>
-        <div class="small">Use <b>Weekly View</b> to see the top 5 performers and any new joiners.</div>
+        <div class="small">Use <b>Practice View</b> to see the top 5 performers and any new joiners.</div>
       </div>
     </aside>
   </div>
@@ -733,60 +750,40 @@ const weeklyData = [
 ];
 
 /* ------- NEW: merge Tue/Thu entries per ISO date within a week ------- */
-function weekdayAbbr(iso){
-  const d = new Date(iso + 'T00:00:00Z'); // keep deterministic across TZs
-  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()];
+function formatPracticeDate(iso){
+  const d = new Date(iso + 'T00:00:00Z');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
 }
 function renderStars(n){ return n > 0 ? '⭐'.repeat(n) : ''; }
-function getMergedWeeks(){
-  const byWeek = new Map();
-  weeklyData.forEach(entry=>{
-    const key = entry.week;
-    const day = weekdayAbbr(entry.date);
-    const node = byWeek.get(key) || { week: entry.week, days: new Set(), statsMap: new Map() };
-    node.days.add(day);
-    entry.stats.forEach(p=>{
-      const cur = node.statsMap.get(p.name) || {name:p.name, attendance:0, goals:0, assists:0, cleanSheet:0, turbotorped:0};
-      cur.attendance += p.attendance; // 0..2 total for that week
-      cur.goals += p.goals;
-      cur.assists += p.assists;
-      cur.cleanSheet += p.cleanSheet;
-      cur.turbotorped += p.turbotorped;
-      node.statsMap.set(p.name, cur);
-    });
-    byWeek.set(key, node);
-  });
-  return Array.from(byWeek.values())
-    .sort((a,b)=>a.week-b.week)
-    .map(w=>({
-      week: w.week,
-      days: Array.from(w.days).sort((a,b)=>{
-        if (a==='Tue' && b!=='Tue') return -1;
-        if (b==='Tue' && a!=='Tue') return 1;
-        return a.localeCompare(b);
-      }),
-      stats: Array.from(w.statsMap.values())
-    }));
+function getPractices(){
+  return weeklyData
+    .map(entry => ({
+      date: entry.date,
+      label: formatPracticeDate(entry.date),
+      stats: entry.stats
+    }))
+    .sort((a,b) => a.date.localeCompare(b.date));
 }
-const mergedWeeks = getMergedWeeks();
+const practices = getPractices();
 
 let currentView='total';
-let currentWeek=mergedWeeks.length-1;
+let currentPractice=practices.length-1;
 
 /* ------- Helpers ------- */
 function calculateTotalStats(){
   const playerStats={};
-  mergedWeeks.forEach(week=>{
-    week.stats.forEach(p=>{
+  practices.forEach(practice=>{
+    practice.stats.forEach(p=>{
       if(!playerStats[p.name]){
-        playerStats[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0,weeklyData:[]};
+        playerStats[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0,practiceData:[]};
       }
       playerStats[p.name].attendance+=p.attendance;
       playerStats[p.name].goals+=p.goals;
       playerStats[p.name].assists+=p.assists;
       playerStats[p.name].cleanSheets+=p.cleanSheet;
       playerStats[p.name].turbotorped+=p.turbotorped;
-      playerStats[p.name].weeklyData.push({week:week.week,...p});
+      playerStats[p.name].practiceData.push({date:practice.date,...p});
     });
   });
   return playerStats;
@@ -800,12 +797,12 @@ function renderLeaderboard(){
     .map(([name,s])=>({name,...s,points:calculatePoints(s)}))
     .sort((a,b)=>b.points-a.points);
 
-  // Previous ranks (up/down)
+// Previous ranks (up/down)
   let previousRankings={};
-  if(mergedWeeks.length>1){
+  if(practices.length>1){
     const prev={};
-    mergedWeeks.slice(0,-1).forEach(w=>{
-      w.stats.forEach(p=>{
+    practices.slice(0,-1).forEach(practice=>{
+      practice.stats.forEach(p=>{
         if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
         prev[p.name].attendance+=p.attendance;
         prev[p.name].goals+=p.goals;
@@ -828,7 +825,11 @@ function renderLeaderboard(){
       else if(d<0) delta=`<span class="rank-change rank-down">▼${Math.abs(d)}</span>`;
     }
     return `<tr>
-      <td><span class="rank">${currentRank}</span>${delta}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
+          <span class="rank">${currentRank}</span>${delta}
+        </div>
+      </td>
       <td><span class="player-name">${p.name}</span></td>
       <td><span class="points">${p.points}</span></td>
       <td>${p.attendance}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.cleanSheets}</td><td>${p.turbotorped}</td>
@@ -836,12 +837,12 @@ function renderLeaderboard(){
   }).join('');
 
   // Aside overview ring
-  const weeksPlayed=mergedWeeks.length;
-  const targetWeeks=Math.max(25, weeksPlayed);
-  const pct=Math.round((weeksPlayed/targetWeeks)*100);
+  const practicesPlayed=practices.length;
+  const targetPractices=50;
+  const pct=Math.round((practicesPlayed/targetPractices)*100);
   const ring=document.getElementById('seasonRing');
   const pctEl=document.getElementById('seasonPct');
-  document.getElementById('weeksText').textContent=`${weeksPlayed} of ${targetWeeks} weeks`;
+  document.getElementById('weeksText').textContent=`${practicesPlayed} of ${targetPractices} practices`;
   ring.style.setProperty('--p', pct);
   pctEl.textContent=pct+'%';
 
@@ -852,15 +853,15 @@ function calculateStreaks(playerStats){
   Object.entries(playerStats).forEach(([name,stats])=>{
     // attendance
     let currentA=0,longA=0,tmpA=0;
-    stats.weeklyData.forEach((w,i)=>{
-      if(w.attendance>0){ tmpA++; if(i===stats.weeklyData.length-1 || stats.weeklyData[i+1].attendance>0) currentA=tmpA; }
+    stats.practiceData.forEach((practice,i)=>{
+      if(practice.attendance>0){ tmpA++; if(i===stats.practiceData.length-1 || stats.practiceData[i+1].attendance>0) currentA=tmpA; }
       else tmpA=0;
       longA=Math.max(longA,tmpA);
     });
     // contribution
     let currentC=0,longC=0,tmpC=0;
-    stats.weeklyData.forEach((w,i)=>{
-      if(w.goals>0 || w.assists>0){ tmpC++; if(i===stats.weeklyData.length-1 || (stats.weeklyData[i+1].goals>0 || stats.weeklyData[i+1].assists>0)) currentC=tmpC; }
+    stats.practiceData.forEach((practice,i)=>{
+      if(practice.goals>0 || practice.assists>0){ tmpC++; if(i===stats.practiceData.length-1 || (stats.practiceData[i+1].goals>0 || stats.practiceData[i+1].assists>0)) currentC=tmpC; }
       else tmpC=0;
       longC=Math.max(longC,tmpC);
     });
@@ -874,13 +875,13 @@ function renderActiveStreaks(){
     .sort((a,b)=>(b.currentAttendance+b.currentContribution)-(a.currentAttendance+a.currentContribution));
   const el=document.getElementById('activeStreaks');
   if(active.length===0){ el.innerHTML='<div class="empty-state">No active streaks yet</div>'; return; }
-  el.innerHTML=active.slice(0,5).map(st=>`
+  el.innerHTML=active.map(st=>`
     <div class="metric-item">
       <div class="metric-player">${st.name}</div>
       <div class="metric-value">
-        ${st.currentAttendance>0?`🎯 ${st.currentAttendance} weeks attendance`:''}
+        ${st.currentAttendance>0?`🎯 ${st.currentAttendance} practice${st.currentAttendance>1?'s':''} attendance`:''}
         ${st.currentAttendance>0 && st.currentContribution>0?'<br>':''}
-        ${st.currentContribution>0?`⚽ ${st.currentContribution} weeks contributing`:''}
+        ${st.currentContribution>0?`⚽ ${st.currentContribution} practice${st.currentContribution>1?'s':''} contributing`:''}
       </div>
     </div>`).join('');
 }
@@ -888,35 +889,67 @@ function renderHotStreak(){
   const stats=calculateTotalStats();
   const recent=3;
   const form=Object.entries(stats).map(([name,s])=>{
-    const r=s.weeklyData.slice(-recent);
-    const pts=r.reduce((sum,w)=>sum+w.attendance+w.goals+w.assists+w.cleanSheet+w.turbotorped*5,0);
-    return {name,recentPoints:pts,weeksPlayed:r.filter(x=>x.attendance>0).length};
-  }).filter(p=>p.weeksPlayed>=2).sort((a,b)=>b.recentPoints-a.recentPoints);
+    const r=s.practiceData.slice(-recent);
+    const pts=r.reduce((sum,practice)=>sum+practice.attendance+practice.goals+practice.assists+practice.cleanSheet+practice.turbotorped*5,0);
+    return {name,recentPoints:pts,practicesPlayed:r.filter(x=>x.attendance>0).length};
+  }).filter(p=>p.practicesPlayed>=2).sort((a,b)=>b.recentPoints-a.recentPoints);
   const el=document.getElementById('hotStreak');
   if(form.length===0){ el.innerHTML='<div class="empty-state">Not enough data yet</div>'; return; }
   const top=form[0];
-  el.innerHTML=`<div class="hot-streak"><div class="hot-streak-player">🔥 ${top.name}</div><div class="hot-streak-desc">${top.recentPoints} points in last ${recent} weeks</div></div>`;
+  el.innerHTML=`<div class="hot-streak"><div class="hot-streak-player">🔥 ${top.name}</div><div class="hot-streak-desc">${top.recentPoints} points in last ${recent} practices</div></div>`;
 }
 function renderMilestones(){
-  const ps=calculateTotalStats(); const out=[];
+  const ps=calculateTotalStats();
+  const out=[];
   const th={goals:[1,5,10,25,50],assists:[1,5,10,25],points:[10,25,50,100],attendance:[5,10,20]};
+
+  if(practices.length===0) {
+    document.getElementById('milestones').innerHTML='<div class="empty-state">No practices yet</div>';
+    return;
+  }
+
+  const latestPracticeDate = practices[practices.length-1].date;
+  const latestPracticePlayers = new Set(practices[practices.length-1].stats.map(p=>p.name));
+
   Object.entries(ps).forEach(([name,s])=>{
-    th.goals.forEach(t=>{ if(s.goals>=t){ const prev=s.goals-(s.weeklyData.at(-1)?.goals||0); if(prev<t) out.push({name,type:'Goals',value:t}); }});
-    th.assists.forEach(t=>{ if(s.assists>=t){ const prev=s.assists-(s.weeklyData.at(-1)?.assists||0); if(prev<t) out.push({name,type:'Assists',value:t}); }});
-    const tp=calculatePoints(s);
-    th.points.forEach(t=>{ if(tp>=t){ const lw=s.weeklyData.at(-1); const lwPts=lw?(lw.attendance+lw.goals+lw.assists+lw.cleanSheet+lw.turbotorped*5):0; if(tp-lwPts<t) out.push({name,type:'Points',value:t}); }});
-    th.attendance.forEach(t=>{ if(s.attendance>=t && s.attendance-(s.weeklyData.at(-1)?.attendance||0)<t) out.push({name,type:'Attendance',value:t}); });
+    // Only check players who participated in the latest practice
+    if(!latestPracticePlayers.has(name)) return;
+
+    const latestPractice = s.practiceData.find(p=>p.date===latestPracticeDate);
+    if(!latestPractice) return;
+
+    // Calculate stats before the latest practice
+    const prevPractices = s.practiceData.filter(p=>p.date < latestPracticeDate);
+    const prevGoals = prevPractices.reduce((sum,p)=>sum+p.goals,0);
+    const prevAssists = prevPractices.reduce((sum,p)=>sum+p.assists,0);
+    const prevAttendance = prevPractices.reduce((sum,p)=>sum+p.attendance,0);
+    const prevPoints = prevPractices.reduce((sum,p)=>sum+p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5),0);
+
+    // Check goals
+    th.goals.forEach(t=>{ if(s.goals>=t && prevGoals<t) out.push({name,type:'Goals',value:t}); });
+    // Check assists
+    th.assists.forEach(t=>{ if(s.assists>=t && prevAssists<t) out.push({name,type:'Assists',value:t}); });
+    // Check attendance
+    th.attendance.forEach(t=>{ if(s.attendance>=t && prevAttendance<t) out.push({name,type:'Attendance',value:t}); });
+    // Check points
+    const totalPoints = calculatePoints(s);
+    th.points.forEach(t=>{ if(totalPoints>=t && prevPoints<t) out.push({name,type:'Points',value:t}); });
   });
+
   const el=document.getElementById('milestones');
-  el.innerHTML = out.length? out.map(m=>`
-    <div class="metric-item"><div class="metric-player">${m.name}</div><div class="metric-value">🎉 ${m.value} ${m.type}</div></div>`).join('')
-    : '<div class="empty-state">No recent milestones</div>';
+  if(out.length===0){
+    el.innerHTML='<div class="empty-state">No recent milestones</div>';
+  } else {
+    out.sort((a,b)=>b.value-a.value);
+    el.innerHTML = out.map(m=>`
+      <div class="metric-item"><div class="metric-player">${m.name}</div><div class="metric-value">🎉 ${m.value} ${m.type}</div></div>`).join('');
+  }
 }
 function renderBiggestClimber(){
   const ps=calculateTotalStats();
-  if(mergedWeeks.length<2){ document.getElementById('biggestClimber').innerHTML='<div class="empty-state">Need more weeks of data</div>'; return;}
+  if(practices.length<2){ document.getElementById('biggestClimber').innerHTML='<div class="empty-state">Need more practices</div>'; return;}
   const prev={};
-  mergedWeeks.slice(0,-1).forEach(w=>w.stats.forEach(p=>{
+  practices.slice(0,-1).forEach(practice=>practice.stats.forEach(p=>{
     if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
     prev[p.name].attendance+=p.attendance; prev[p.name].goals+=p.goals; prev[p.name].assists+=p.assists; prev[p.name].cleanSheets+=p.cleanSheet; prev[p.name].turbotorped+=p.turbotorped;
   }));
@@ -924,7 +957,13 @@ function renderBiggestClimber(){
   const prevRanks={}; prevL.forEach((p,i)=>prevRanks[p.name]=i+1);
   const currentL=Object.entries(ps).map(([name,s])=>({name,points:calculatePoints(s)})).sort((a,b)=>b.points-a.points);
   let win=null,climb=0;
-  currentL.forEach((p,i)=>{ const r=i+1, pr=prevRanks[p.name]||999, d=pr-r; if(d>climb){climb=d; win=p.name;}});
+  currentL.forEach((p,i)=>{
+    const r=i+1, pr=prevRanks[p.name];
+    if(pr){ // Only count players who existed before (not new players)
+      const d=pr-r;
+      if(d>climb){climb=d; win=p.name;}
+    }
+  });
   const el=document.getElementById('biggestClimber');
   el.innerHTML = (!win || climb===0) ? '<div class="empty-state">No significant rank changes</div>' :
     `<div class="metric-item"><div class="metric-player">${win}</div><div class="metric-value">📈 Climbed ${climb} position${climb>1?'s':''}</div></div>`;
@@ -932,28 +971,27 @@ function renderBiggestClimber(){
 function renderSeasonStats(){
   const ps=calculateTotalStats();
   const goals=Object.values(ps).reduce((s,p)=>s+p.goals,0);
-  const games=mergedWeeks.length; const players=Object.keys(ps).length;
+  const practiceCount=practices.length; const players=Object.keys(ps).length;
   const el=document.getElementById('seasonStats');
   el.innerHTML = `
-    <div class="metric-item"><div class="metric-player">Total Weeks</div><div class="metric-value">${games}</div></div>
+    <div class="metric-item"><div class="metric-player">Total Practices</div><div class="metric-value">${practiceCount}</div></div>
     <div class="metric-item"><div class="metric-player">Total Players</div><div class="metric-value">${players}</div></div>
     <div class="metric-item"><div class="metric-player">Total Goals</div><div class="metric-value">${goals}</div></div>`;
 }
-function populateWeekSelector(){
+function populatePracticeSelector(){
   const sel=document.getElementById('weekSelect');
-  sel.innerHTML = mergedWeeks.map((w,i)=>{
-    const label = `Week ${w.week}, ${w.days.join(' + ')}`;
-    return `<option value="${i}">${label}</option>`;
+  sel.innerHTML = practices.map((practice,i)=>{
+    return `<option value="${i}">${practice.label}</option>`;
   }).reverse().join('');
-  sel.value=currentWeek;
+  sel.value=currentPractice;
 }
-function pickWeeklyTopTeam(week){
-  const players = week.stats
+function pickPracticeTopTeam(practice){
+  const players = practice.stats
     .filter(p => p.attendance > 0)
     .map(p => ({
       ...p,
       ga: p.goals + p.assists,
-      weekPoints: p.attendance + p.goals + p.assists + p.cleanSheet + (p.turbotorped * 5)
+      practicePoints: p.attendance + p.goals + p.assists + p.cleanSheet + (p.turbotorped * 5)
     }));
 
   const taken = new Set();
@@ -961,7 +999,7 @@ function pickWeeklyTopTeam(week){
 
   // --- Attackers: top 2 by GA (tie-break goals, then points) ---
   const byGA = [...players].sort((a,b) =>
-    (b.ga - a.ga) || (b.goals - a.goals) || (b.weekPoints - a.weekPoints)
+    (b.ga - a.ga) || (b.goals - a.goals) || (b.practicePoints - a.practicePoints)
   );
   for (const p of byGA) {
     if (!taken.has(p.name)) { team.push({...p, role:'ATT'}); taken.add(p.name); }
@@ -970,16 +1008,16 @@ function pickWeeklyTopTeam(week){
 
   // --- Defenders: top 2 by cleanSheet, tie-break GA, then points ---
   const byCS = [...players].sort((a,b) =>
-    (b.cleanSheet - a.cleanSheet) || (b.ga - a.ga) || (b.weekPoints - a.weekPoints)
+    (b.cleanSheet - a.cleanSheet) || (b.ga - a.ga) || (b.practicePoints - a.practicePoints)
   );
   for (const p of byCS) {
     if (!taken.has(p.name)) { team.push({...p, role:'DEF'}); taken.add(p.name); }
     if (team.filter(x=>x.role==='DEF').length === 2) break;
   }
 
-  // --- Fifth: best remaining by weekly points (tie-break GA, then goals) ---
+  // --- Fifth: best remaining by practice points (tie-break GA, then goals) ---
   const byPts = [...players].sort((a,b) =>
-    (b.weekPoints - a.weekPoints) || (b.ga - a.ga) || (b.goals - a.goals)
+    (b.practicePoints - a.practicePoints) || (b.ga - a.ga) || (b.goals - a.goals)
   );
   for (const p of byPts) {
     if (!taken.has(p.name)) { team.push({...p, role:'MVP'}); taken.add(p.name); break; }
@@ -995,12 +1033,12 @@ function pickWeeklyTopTeam(week){
 
   return team.slice(0,5);
 }
-function updateWeeklyView(){
-  currentWeek=parseInt(document.getElementById('weekSelect').value);
-  const week=mergedWeeks[currentWeek];
+function updatePracticeView(){
+  currentPractice=parseInt(document.getElementById('weekSelect').value);
+  const practice=practices[currentPractice];
   const tbody=document.getElementById('weeklyStatsBody');
 
-  tbody.innerHTML = week.stats.map(p=>{
+  tbody.innerHTML = practice.stats.map(p=>{
     const pts=p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5);
     return `<tr>
       <td><span class="player-name">${p.name}</span></td>
@@ -1012,7 +1050,7 @@ function updateWeeklyView(){
     </tr>`;
   }).join('');
 
-  const team = pickWeeklyTopTeam(week);
+  const team = pickPracticeTopTeam(practice);
   document.getElementById('weeklyTeam').innerHTML = `
     <div class="weekly-team">
       ${team.map(p => `
@@ -1028,10 +1066,10 @@ function updateWeeklyView(){
       `).join('')}
     </div>`;
 
-  const prevNames=new Set(); mergedWeeks.slice(0,currentWeek).forEach(w=>w.stats.forEach(p=>prevNames.add(p.name)));
-  const newcomers=week.stats.filter(p=>!prevNames.has(p.name));
+  const prevNames=new Set(); practices.slice(0,currentPractice).forEach(practice=>practice.stats.forEach(p=>prevNames.add(p.name)));
+  const newcomers=practice.stats.filter(p=>!prevNames.has(p.name));
   const np=document.getElementById('newPlayers');
-  np.innerHTML = newcomers.length? newcomers.map(p=>`<div class="metric-item"><div class="metric-player new-player">🆕 ${p.name}</div></div>`).join('') : '<div class="empty-state">No new players this week</div>';
+  np.innerHTML = newcomers.length? newcomers.map(p=>`<div class="metric-item"><div class="metric-player new-player">🆕 ${p.name}</div></div>`).join('') : '<div class="empty-state">No new players this practice</div>';
 }
 function showView(view){
   document.getElementById('totalView').style.display = (view==='total')?'block':'none';
@@ -1041,7 +1079,7 @@ function showView(view){
   if(view==='total'){
     renderLeaderboard(); renderActiveStreaks(); renderHotStreak(); renderMilestones(); renderBiggestClimber(); renderSeasonStats();
   }else{
-    populateWeekSelector(); updateWeeklyView();
+    populatePracticeSelector(); updatePracticeView();
   }
 }
 
@@ -1052,7 +1090,7 @@ renderHotStreak();
 renderMilestones();
 renderBiggestClimber();
 renderSeasonStats();
-populateWeekSelector();
+populatePracticeSelector();
 </script>
 </body>
 </html>
