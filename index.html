@@ -659,10 +659,12 @@ td{padding:16px; font-size:14px; font-weight:500;}
           </div>
 
           <div class="panel hot-streak-card">
-            <div class="section-title">⭐ Session Top Team</div>
-            <div id="weeklyTeam"></div>
-          </div>
-
+              <div class="section-title">⭐ Practice Top Team</div>
+              <div id="weeklyTeam"></div>
+              <div style="font-size:11px;color:var(--muted-2);margin-top:16px;line-height:1.5;">
+                <b>ATT:</b> Best goals+assists • <b>DEF:</b> Current CS + 30% historic avg • <b>★:</b> Best remaining points
+              </div>
+            </div>
           <div class="panel stat-card">
             <div class="section-title">🆕 New Players</div>
             <div id="newPlayers" class="scroll-list"></div>
@@ -1089,8 +1091,17 @@ function updatePracticeView(){
   const team = pickPracticeTopTeam(practice);
   document.getElementById('weeklyTeam').innerHTML = `
     <div class="weekly-team">
-      ${team.map(p => `
-        <div class="team-player">
+      ${team.map(p => {
+        let tooltip = '';
+        if(p.role === 'ATT') tooltip = 'Selected by: Goals + Assists';
+        else if(p.role === 'DEF') {
+          const hist = p.historicalWeightedCS ? p.historicalWeightedCS.toFixed(1) : '0.0';
+          tooltip = `Selected by: ${p.cleanSheet} CS (current) + ${hist} CS (avg history) × 0.3`;
+        }
+        else tooltip = 'Selected by: Highest remaining points';
+
+        return `
+        <div class="team-player" title="${tooltip}">
           <div class="team-player-name">${p.name}</div>
           <div class="team-player-stats">
             ${p.role === 'ATT' ? 'ATT' : (p.role === 'DEF' ? 'DEF' : '★')}
@@ -1099,7 +1110,7 @@ function updatePracticeView(){
             ${p.turbotorped ? '• ' + renderStars(p.turbotorped) : ''}
           </div>
         </div>
-      `).join('')}
+      `}).join('')}
     </div>`;
 
   const prevNames=new Set(); practices.slice(0,currentPractice).forEach(practice=>practice.stats.forEach(p=>prevNames.add(p.name)));
