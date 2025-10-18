@@ -985,6 +985,36 @@ function populatePracticeSelector(){
   }).reverse().join('');
   sel.value=currentPractice;
 }
+function calculateWeightedHistoricalCS(playerName, allPractices, currentPracticeDate, minPractices = 2, minTotalPractices = 5){
+  const ps = calculateTotalStats();
+  const playerData = ps[playerName];
+  if(!playerData) return 0;
+
+  // Only enforce minimum attendance if we have enough total practices in the season
+  if(allPractices.length >= minTotalPractices && playerData.attendance < minPractices) {
+    return 0;
+  }
+
+  // Get player's HISTORICAL practice data (exclude current practice) sorted by date (most recent first)
+  const historicalPractices = [...playerData.practiceData]
+    .filter(p => p.date !== currentPracticeDate)
+    .sort((a,b) => b.date.localeCompare(a.date));
+
+  if(historicalPractices.length === 0) return 0;
+
+  let weightedScore = 0;
+  let totalWeight = 0;
+  const decayFactor = 0.4; // 40% decay per practice back
+
+  historicalPractices.forEach((practice, index) => {
+    const weight = Math.pow(decayFactor, index + 1); // Start decay at first historical: 40%, 16%, 6.4%, etc.
+    weightedScore += practice.cleanSheet * weight;
+    totalWeight += weight;
+  });
+
+  // Normalize by total weight to get weighted average
+  return totalWeight > 0 ? weightedScore / totalWeight : 0;
+}
 function pickPracticeTopTeam(practice){
   const players = practice.stats
     .filter(p => p.attendance > 0)
@@ -1006,10 +1036,26 @@ function pickPracticeTopTeam(practice){
     if (team.filter(x=>x.role==='ATT').length === 2) break;
   }
 
-  // --- Defenders: top 2 by cleanSheet, tie-break GA, then points ---
-  const byCS = [...players].sort((a,b) =>
-    (b.cleanSheet - a.cleanSheet) || (b.ga - a.ga) || (b.practicePoints - a.practicePoints)
+  // --- Defenders: current practice CS + normalized weighted historical CS ---
+  const currentPracticeDate = practice.date;
+  const historicalWeight = 0.3; // Historical performance counts for 30%
+  const playersWithDefenseScore = players.map(p => ({
+    ...p,
+    historicalWeightedCS: calculateWeightedHistoricalCS(p.name, practices, currentPracticeDate),
+    totalDefenseScore: p.cleanSheet + (historicalWeight * calculateWeightedHistoricalCS(p.name, practices, currentPracticeDate))
+  }));
+
+  // Debug logging
+  console.log('=== DEFENDER SELECTION DEBUG ===');
+  playersWithDefenseScore.forEach(p => {
+    console.log(`${p.name}: currentCS=${p.cleanSheet}, historicalCS=${p.historicalWeightedCS.toFixed(2)}, totalScore=${p.totalDefenseScore.toFixed(2)}, points=${p.practicePoints}`);
+  });
+
+  const byCS = [...playersWithDefenseScore].sort((a,b) =>
+    (b.totalDefenseScore - a.totalDefenseScore) || (b.practicePoints - a.practicePoints)
   );
+
+  console.log('Top defenders selected:', byCS.slice(0,2).map(p => p.name));
   for (const p of byCS) {
     if (!taken.has(p.name)) { team.push({...p, role:'DEF'}); taken.add(p.name); }
     if (team.filter(x=>x.role==='DEF').length === 2) break;
