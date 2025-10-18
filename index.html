@@ -1030,12 +1030,25 @@ function pickPracticeTopTeam(practice){
 
   // --- Defenders: current practice CS + normalized weighted historical CS ---
   const currentPracticeDate = practice.date;
-  const historicalWeight = 0.3; // Historical performance counts for 30%
-  const playersWithDefenseScore = players.map(p => ({
-    ...p,
-    historicalWeightedCS: calculateAverageHistoricalCS(p.name, practices, currentPracticeDate),
-    totalDefenseScore: p.cleanSheet + (historicalWeight * calculateAverageHistoricalCS(p.name, practices, currentPracticeDate))
-  }));
+  const maxHistoricalWeight = 0.3; // Maximum weight for players with many practices
+
+  const playersWithDefenseScore = players.map(p => {
+    const ps = calculateTotalStats();
+    const playerData = ps[p.name];
+    const historicalCount = playerData ? playerData.practiceData.filter(pr => pr.date !== currentPracticeDate).length : 0;
+
+    // Weight scales with number of historical practices: 0.3 × (1 - e^(-n/3))
+    const historicalWeight = historicalCount > 0 ? maxHistoricalWeight * (1 - Math.exp(-historicalCount / 3)) : 0;
+
+    const historicalCS = calculateAverageHistoricalCS(p.name, practices, currentPracticeDate);
+
+    return {
+      ...p,
+      historicalWeightedCS: historicalCS,
+      historicalWeight: historicalWeight,
+      totalDefenseScore: p.cleanSheet + (historicalWeight * historicalCS)
+    };
+  });
 
   // Debug logging
   console.log('=== DEFENDER SELECTION DEBUG ===');
