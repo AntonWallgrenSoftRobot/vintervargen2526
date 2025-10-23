@@ -1563,16 +1563,41 @@ function renderActiveStreaks(){
 }
 function renderHotStreak(){
   const stats=calculateTotalStats();
-  const recent=3;
-  const form=Object.entries(stats).map(([name,s])=>{
-    const r=s.practiceData.slice(-recent);
-    const pts=r.reduce((sum,practice)=>sum+practice.attendance+practice.goals+practice.assists+practice.cleanSheet+practice.turbotorped*5,0);
-    return {name,recentPoints:pts,practicesPlayed:r.filter(x=>x.attendance>0).length};
-  }).filter(p=>p.practicesPlayed>=2).sort((a,b)=>b.recentPoints-a.recentPoints);
-  const el=document.getElementById('hotStreak');
-  if(form.length===0){ el.innerHTML='<div class="empty-state">Not enough data yet</div>'; return; }
-  const top=form[0];
-  el.innerHTML=`<div class="hot-streak"><div class="hot-streak-player">🔥 ${top.name}</div><div class="hot-streak-desc">${top.recentPoints} points in last ${recent} practices</div></div>`;
+
+  // Get the last 3 practices chronologically
+  const sortedPractices = practices.slice().sort((a,b) => a.date.localeCompare(b.date));
+  const lastThreePractices = sortedPractices.slice(-3);
+
+  if(lastThreePractices.length < 3) {
+    document.getElementById('hotStreak').innerHTML='<div class="empty-state">Need at least 3 practices</div>';
+    return;
+  }
+
+  const form = Object.keys(stats).map(name => {
+    let pts = 0;
+    let practicesPlayed = 0;
+
+    lastThreePractices.forEach(practice => {
+      const playerStats = practice.stats.find(p => p.name === name);
+      if(playerStats && playerStats.attendance > 0) {
+        practicesPlayed++;
+        pts += playerStats.attendance + playerStats.goals + playerStats.assists +
+               playerStats.cleanSheet + (playerStats.turbotorped * 5);
+      }
+    });
+
+    return {name, recentPoints: pts, practicesPlayed};
+  }).filter(p => p.practicesPlayed >= 2) // Must have played at least 2 of last 3
+    .sort((a,b) => b.recentPoints - a.recentPoints);
+
+  const el = document.getElementById('hotStreak');
+  if(form.length === 0) {
+    el.innerHTML = '<div class="empty-state">Not enough data yet</div>';
+    return;
+  }
+
+  const top = form[0];
+  el.innerHTML = `<div class="hot-streak"><div class="hot-streak-player">🔥 ${top.name}</div><div class="hot-streak-desc">${top.recentPoints} points in last 3 practices (played ${top.practicesPlayed})</div></div>`;
 }
 function renderMilestones(){
   const ps=calculateTotalStats();
