@@ -1697,7 +1697,7 @@ const weeklyData = [
             {
                 "name": "Olle",
                 "attendance": 1,
-                "goals": 3,
+                "goals": 2,
                 "assists": 0,
                 "cleanSheet": 6,
                 "turbotorped": 0
@@ -2105,10 +2105,10 @@ function renderDeviationLeaderForPractice(practice){
   else if(top.z >= 1.5) tag = 'Hot hand';
 
   document.getElementById('deviationLeader').innerHTML = `
-    <div class="hot-streak" title="Compares today to the player’s own past practices, adjusting for how steady or streaky they usually are.">
+    <div class="hot-streak" title="Compares last session to the player’s own past practices, adjusting for how steady or streaky they usually are.">
       <div class="hot-streak-player">🔥 ${top.name}</div>
       <div class="hot-streak-desc">
-        ${tag}: ${top.currGA} goal contributions today
+        ${tag}: ${top.currGA} goal contributions last session
         <span style="color:var(--muted)"> • usually ${top.mu.toFixed(1)}</span><br/>
         (<span>+${top.z.toFixed(2)}</span> standard deviations)<br/>
         <span style="color:var(--muted-2)">Based on ${top.n} earlier practices</span>
