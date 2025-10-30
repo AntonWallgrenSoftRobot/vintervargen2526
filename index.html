@@ -669,6 +669,10 @@ td{padding:16px; font-size:14px; font-weight:500;}
             <div class="section-title">🆕 New Players</div>
             <div id="newPlayers" class="scroll-list"></div>
           </div>
+          <div class="panel hot-streak-card">
+            <div class="section-title">🚀 Overperformance Spotlight</div>
+            <div id="deviationLeader"></div>
+          </div>
         </div>
       </section>
     </main>
@@ -2038,6 +2042,81 @@ function calculateAverageHistoricalCS(playerName, allPractices, currentPracticeD
   const totalCS = historicalPractices.reduce((sum, p) => sum + p.cleanSheet, 0);
   return totalCS / historicalPractices.length;
 }
+/* ------- Deviation Leader (Negative-Binomial z-score) ------- */
+function mean(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function sampleVariance(arr, m){
+  if(arr.length < 2) return 0;
+  const s = arr.reduce((acc,x)=>acc+(x-m)*(x-m), 0);
+  return s/(arr.length-1);
+}
+function nbPredictiveSD(mu, v){
+  // NB variance: mu + mu^2 / R, with R = mu^2 / (v - mu) when v>mu; else Poisson
+  if(!(v > mu)) return Math.sqrt(Math.max(mu, 1e-9)); // Poisson-ish or underdispersed
+  const denom = Math.max(v - mu, 1e-9);
+  const R = Math.max((mu*mu)/denom, 0.1); // small floor for stability
+  return Math.sqrt(mu + (mu*mu)/R);
+}
+function renderDeviationLeaderForPractice(practice){
+  const practiceDate = practice.date;
+  const sortedPractices = practices.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const priorPractices = sortedPractices.filter(pr => pr.date < practiceDate);
+
+  if(priorPractices.length === 0){
+    document.getElementById('deviationLeader').innerHTML =
+      '<div class="empty-state">Need earlier practices to compare against</div>';
+    return;
+  }
+
+  const candidates = practice.stats.map(p => {
+    const historyGA = [];
+    priorPractices.forEach(pr => {
+      const row = pr.stats.find(r => r.name === p.name);
+      if(row && row.attendance > 0){
+        historyGA.push((row.goals||0) + (row.assists||0));
+      }
+    });
+    const n = historyGA.length;
+    if(n < 2) return null; // need at least a couple of earlier practices
+
+    const mu = mean(historyGA);
+    const v  = sampleVariance(historyGA, mu);
+    const currGA = (p.goals||0) + (p.assists||0);
+    const sd = nbPredictiveSD(mu, v); // uses that player's own consistency
+    const z = (currGA - mu) / (sd || 1e-9);
+
+    return { name: p.name, z, currGA, mu, n };
+  }).filter(Boolean).filter(x => isFinite(x.z) && x.z > 0);
+
+  if(candidates.length === 0){
+    document.getElementById('deviationLeader').innerHTML =
+      '<div class="empty-state">No one beat their usual this practice</div>';
+    return;
+  }
+
+  candidates.sort((a,b)=>b.z - a.z);
+  const top = candidates[0];
+
+  // Friendly phrasing (no stats jargon)
+  const lift = top.currGA - top.mu;                       // extra goals+assists vs usual
+  const ratio = top.mu > 0 ? (top.currGA / top.mu) : top.currGA; // how many times their usual
+  let tag = 'Breakout game';
+  if(top.z >= 3.5) tag = 'Godlike';
+  else if(top.z >= 2.5) tag = 'On fire';
+  else if(top.z >= 1.5) tag = 'Hot hand';
+
+  document.getElementById('deviationLeader').innerHTML = `
+    <div class="hot-streak" title="Compares today to the player’s own past practices, adjusting for how steady or streaky they usually are.">
+      <div class="hot-streak-player">🔥 ${top.name}</div>
+      <div class="hot-streak-desc">
+        ${tag}: ${top.currGA} goal contributions today
+        <span style="color:var(--muted)"> • usually ${top.mu.toFixed(1)}</span><br/>
+        (<span>+${top.z.toFixed(2)}</span> standard deviations)<br/>
+        <span style="color:var(--muted-2)">Based on ${top.n} earlier practices</span>
+      </div>
+    </div>
+  `;
+}
+
 function pickPracticeTopTeam(practice){
   const players = practice.stats
     .filter(p => p.attendance > 0)
@@ -2118,6 +2197,7 @@ function pickPracticeTopTeam(practice){
 function updatePracticeView(){
   currentPractice=parseInt(document.getElementById('weekSelect').value);
   const practice=practices[currentPractice];
+  renderDeviationLeaderForPractice(practice);
   const tbody=document.getElementById('weeklyStatsBody');
 
   tbody.innerHTML = practice.stats.map(p=>{
