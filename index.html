@@ -1075,19 +1075,31 @@ function renderDeviationLeaderForPractice(practice){
   const lift  = top.currGA - top.mu;
   const ratio = top.mu > 0 ? (top.currGA / top.mu) : top.currGA;
 
-  document.getElementById('deviationLeader').innerHTML = `
-    <div class="hot-streak" title="Compares today to the player’s own past practices, adjusting for how steady or streaky they usually are.">
-      <div class="hot-streak-player">🔥 ${top.name}</div>
-      <div class="hot-streak-desc">
-        Breakout: ${top.currGA} goal contributions
-        <span style="color:var(--muted)"> • usually ${top.mu.toFixed(1)}</span><br/>
-        (<span>${top.z.toFixed(2)}</span> standard deviations)<br/>
-<!--        <span style="font-weight:700">${lift >= 0 ? '+' : ''}${lift.toFixed(1)}</span> vs usual-->
-<!--        <span style="color:var(&#45;&#45;muted)">(${ratio.toFixed(1)}× their norm)</span><br/>-->
-        <span style="color:var(--muted-2)">Based on ${top.n} earlier practices</span>
+    let level = '';
+    if (top.z > 3.5) {
+      level = 'Godlike';
+    } else if (top.z > 2.5) {
+      level = 'On Fire';
+    } else if (top.z > 1.5) {
+      level = 'Breakout';
+    } else {
+      level = 'Steady';
+    }
+
+    document.getElementById('deviationLeader').innerHTML = `
+      <div class="hot-streak" title="Compares today to the player’s own past practices, adjusting for how steady or streaky they usually are.">
+        <div class="hot-streak-player">
+          ${level === 'Godlike' ? '⚡' : level === 'On Fire' ? '🔥' : level === 'Breakout' ? '✨' : '🏒'}
+          ${top.name}
+        </div>
+        <div class="hot-streak-desc">
+          <strong>${level}</strong>: ${top.currGA} goal contributions
+          <span style="color:var(--muted)"> • usually ${top.mu.toFixed(1)}</span><br/>
+          (<span>+${top.z.toFixed(2)}</span> standard deviations)<br/>
+          <span style="color:var(--muted-2)">Based on ${top.n} earlier practices</span>
+        </div>
       </div>
-    </div>
-  `;
+    `;
 }
 
 
