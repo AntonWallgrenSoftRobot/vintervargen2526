@@ -39,7 +39,7 @@ body{
   letter-spacing:-.01em;
   /* overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  -moz-osx-font-smoothing:grayscale; */
 }
 
 /* ---------- Layout ---------- */
@@ -568,6 +568,100 @@ td{padding:16px; font-size:14px; font-weight:500;}
 }
 .scroll-table:hover::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.25); }
 .scroll-table{ scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.22) transparent; }
+
+/* ---------- Team Balancer ---------- */
+.player-checkbox{
+  display:flex; align-items:center; gap:12px;
+  padding:16px 20px;
+  background:linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border:1px solid var(--border);
+  border-radius:16px;
+  margin-bottom:8px;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  min-height:56px;
+}
+.player-checkbox:hover{
+  border-color:rgba(57,255,20,.25);
+  background:linear-gradient(135deg, rgba(57,255,20,.06), rgba(255,255,255,.02));
+  transform:translateX(4px);
+  box-shadow:0 2px 8px rgba(57,255,20,.1);
+}
+.player-checkbox input[type="checkbox"]{
+  width:22px; height:22px;
+  cursor:pointer;
+  accent-color:var(--green);
+  flex-shrink:0;
+  margin:0;
+}
+.player-checkbox-label{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  cursor:pointer;
+}
+.player-checkbox-name{
+  font-weight:600; font-size:15px;
+}
+.player-checkbox-stats{
+  font-size:12px; color:var(--muted);
+  display:flex; gap:12px;
+}
+
+.team-container{
+  margin-bottom:24px;
+  padding:20px;
+  background:linear-gradient(135deg, rgba(57,255,20,.08), rgba(255,45,85,.05));
+  border:1px solid rgba(57,255,20,.2);
+  border-radius:20px;
+}
+.team-header{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.team-title{
+  font-weight:800; font-size:20px;
+  background:linear-gradient(135deg, var(--green), #c7ffc7);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.team-stats{
+  display:flex; gap:16px;
+  font-size:12px; color:var(--muted);
+}
+.team-stats span{
+  font-weight:600; color:var(--white);
+}
+.team-players{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+  gap:12px;
+}
+.team-player-card{
+  padding:12px 16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:12px;
+  text-align:center;
+  transition:all .3s;
+}
+.team-player-card:hover{
+  border-color:rgba(57,255,20,.4);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(57,255,20,.15);
+}
+.team-player-card-name{
+  font-weight:700; font-size:14px; margin-bottom:4px;
+}
+.team-player-card-stats{
+  font-size:11px; color:var(--muted-2);
+}
 </style>
 </head>
 <body>
@@ -584,6 +678,7 @@ td{padding:16px; font-size:14px; font-weight:500;}
           <div class="controls">
             <button class="btn active" onclick="showView('total')">Total Season</button>
             <button class="btn" onclick="showView('weekly')">Practice View</button>
+            <button class="btn" onclick="showView('teams')">Team Balancer</button>
           </div>
         </div>
       </div>
@@ -672,6 +767,42 @@ td{padding:16px; font-size:14px; font-weight:500;}
           <div class="panel hot-streak-card">
             <div class="section-title">🚀 Overperformance Spotlight</div>
             <div id="deviationLeader"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TEAM BALANCER VIEW -->
+      <section id="teamsView" style="display:none;">
+        <div class="grid">
+          <div class="panel leaderboard">
+            <div class="section-title">⚖️ Team Balancer</div>
+            <div style="margin-bottom:20px;">
+              <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted);font-size:13px;">Number of Teams</label>
+                <select id="teamCountSelect" style="padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-weight:600;outline:none;cursor:pointer;font-size:14px;box-shadow:var(--shadow-sm);width:100%;max-width:200px;">
+                  <option value="3">3 Teams</option>
+                  <option value="4">4 Teams</option>
+                </select>
+              </div>
+              <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted);font-size:13px;">Add New Player</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="text" id="newPlayerInput" placeholder="Player name" style="flex:1;padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-size:14px;outline:none;box-shadow:var(--shadow-sm);" onkeypress="if(event.key==='Enter') addNewPlayer()">
+                  <button onclick="addNewPlayer()" class="btn" style="padding:12px 24px;">Add</button>
+                </div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <button onclick="updateTeamBalancer()" class="btn active" style="padding:14px 32px;width:100%;font-size:16px;font-weight:700;">
+                  ⚖️ Generate Teams
+                </button>
+              </div>
+            </div>
+            <div id="teamBalancerResults"></div>
+          </div>
+
+          <div class="panel hot-streak-card">
+            <div class="section-title">👥 Select Players</div>
+            <div id="playerSelection" class="scroll-list" style="max-height:600px;"></div>
           </div>
         </div>
       </section>
@@ -1228,15 +1359,293 @@ function updatePracticeView(){
   const np=document.getElementById('newPlayers');
   np.innerHTML = newcomers.length? newcomers.map(p=>`<div class="metric-item"><div class="metric-player new-player">🆕 ${p.name}</div></div>`).join('') : '<div class="empty-state">No new players this practice</div>';
 }
+/* ------- Team Balancer ------- */
+let selectedPlayers = new Set();
+let newPlayers = new Set();
+
+function renderPlayerSelection(){
+  const stats = calculateTotalStats();
+  const existingPlayers = Object.keys(stats);
+  const allPlayersSet = new Set([...existingPlayers, ...Array.from(newPlayers)]);
+  
+  // Sort by attendance (descending), then alphabetically for ties
+  const allPlayers = Array.from(allPlayersSet).map(name => {
+    const s = stats[name] || {goals:0, assists:0, cleanSheets:0, attendance:0};
+    return {
+      name,
+      attendance: s.attendance || 0
+    };
+  }).sort((a, b) => {
+    // First sort by attendance (descending)
+    if(b.attendance !== a.attendance){
+      return b.attendance - a.attendance;
+    }
+    // Then alphabetically
+    return a.name.localeCompare(b.name);
+  });
+  
+  const el = document.getElementById('playerSelection');
+  
+  el.innerHTML = allPlayers.map(({name}) => {
+    const s = stats[name] || {goals:0, assists:0, cleanSheets:0, attendance:0};
+    const attendance = s.attendance || 0;
+    const isSelected = selectedPlayers.has(name);
+    const isNew = newPlayers.has(name) && !stats[name];
+    
+    // Calculate averages per practice
+    const avgGoals = attendance > 0 ? (s.goals || 0) / attendance : 0;
+    const avgAssists = attendance > 0 ? (s.assists || 0) / attendance : 0;
+    const avgCleanSheets = attendance > 0 ? (s.cleanSheets || 0) / attendance : 0;
+    
+    return `
+      <label class="player-checkbox">
+        <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="togglePlayer('${name}')">
+        <div class="player-checkbox-label">
+          <span class="player-checkbox-name">${isNew ? '🆕 ' : ''}${name}</span>
+          <div class="player-checkbox-stats">
+            <span>⚽${avgGoals.toFixed(2)}</span>
+            <span>🎯${avgAssists.toFixed(2)}</span>
+            <span>🛡️${avgCleanSheets.toFixed(2)}</span>
+            ${attendance > 0 ? `<span style="color:var(--muted-2);">(${attendance})</span>` : ''}
+          </div>
+        </div>
+      </label>
+    `;
+  }).join('');
+}
+
+function togglePlayer(name){
+  if(selectedPlayers.has(name)){
+    selectedPlayers.delete(name);
+  } else {
+    selectedPlayers.add(name);
+  }
+  renderPlayerSelection();
+}
+
+function addNewPlayer(){
+  const input = document.getElementById('newPlayerInput');
+  const name = input.value.trim();
+  const stats = calculateTotalStats();
+  if(name && !stats[name] && !newPlayers.has(name)){
+    newPlayers.add(name);
+    selectedPlayers.add(name);
+    input.value = '';
+    renderPlayerSelection();
+  } else if(name && stats[name]){
+    alert('Player already exists in the database');
+    input.value = '';
+  }
+}
+
+function balanceTeams(players, numTeams){
+  if(players.length === 0) return [];
+  
+  // Helper function to calculate variance of an array
+  function calculateVariance(values){
+    if(values.length === 0) return Infinity;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    return variance;
+  }
+  
+  // Helper function to calculate team averages
+  function getTeamAverages(team){
+    const count = team.players.length;
+    if(count === 0) return {goals: 0, assists: 0, cleanSheets: 0, total: 0};
+    
+    const avgGoals = team.sumGoals / count;
+    const avgAssists = team.sumAssists / count;
+    const avgCleanSheets = team.sumCleanSheets / count;
+    const avgTotal = avgGoals + avgAssists + avgCleanSheets;
+    
+    return {goals: avgGoals, assists: avgAssists, cleanSheets: avgCleanSheets, total: avgTotal};
+  }
+  
+  // Get player stats
+  const stats = calculateTotalStats();
+  const playerData = players.map(name => {
+    const s = stats[name] || {goals:0, assists:0, cleanSheets:0, attendance:0};
+    const attendance = s.attendance || 0;
+    
+    // Calculate averages per practice (if attendance > 0, otherwise use 0)
+    const avgGoals = attendance > 0 ? (s.goals || 0) / attendance : 0;
+    const avgAssists = attendance > 0 ? (s.assists || 0) / attendance : 0;
+    const avgCleanSheets = attendance > 0 ? (s.cleanSheets || 0) / attendance : 0;
+    const avgTotal = avgGoals + avgAssists + avgCleanSheets;
+    
+    return {
+      name,
+      goals: avgGoals,
+      assists: avgAssists,
+      cleanSheets: avgCleanSheets,
+      total: avgTotal,
+      attendance: attendance,
+      // Keep raw stats for display
+      rawGoals: s.goals || 0,
+      rawAssists: s.assists || 0,
+      rawCleanSheets: s.cleanSheets || 0
+    };
+  });
+  
+  // Sort by total average (descending) for better distribution
+  playerData.sort((a, b) => b.total - a.total);
+  
+  // Initialize teams - track sums and counts separately
+  const teams = Array(numTeams).fill(null).map(() => ({
+    players: [],
+    sumGoals: 0,      // Sum of player goal averages
+    sumAssists: 0,    // Sum of player assist averages
+    sumCleanSheets: 0, // Sum of player clean sheet averages
+    sumTotal: 0       // Sum of player total averages
+  }));
+  
+  // Greedy assignment: assign each player to the team that minimizes variance
+  // while keeping teams as equal in size as possible
+  playerData.forEach(player => {
+    // First, find the minimum team size
+    const minTeamSize = Math.min(...teams.map(team => team.players.length));
+    
+    // Only consider teams with the minimum size
+    const candidateTeams = teams
+      .map((team, idx) => ({ team, idx, size: team.players.length }))
+      .filter(({ size }) => size === minTeamSize)
+      .map(({ team, idx }) => ({ team, idx }));
+    
+    let bestTeam = candidateTeams[0].idx;
+    let bestVariance = Infinity;
+    
+    // Try assigning to each candidate team and see which minimizes variance
+    for(const { team, idx: teamIdx } of candidateTeams){
+      // Calculate what team averages would be if we add this player
+      const tempTeams = teams.map((t, idx) => {
+        if(idx === teamIdx){
+          // Add player to this team
+          return {
+            ...t,
+            sumGoals: t.sumGoals + player.goals,
+            sumAssists: t.sumAssists + player.assists,
+            sumCleanSheets: t.sumCleanSheets + player.cleanSheets,
+            sumTotal: t.sumTotal + player.total,
+            players: [...t.players, player]
+          };
+        }
+        return t;
+      });
+      
+      // Calculate team averages for all teams
+      const teamAverages = tempTeams.map(team => {
+        const count = team.players.length;
+        if(count === 0) return {goals: 0, assists: 0, cleanSheets: 0, total: 0};
+        return {
+          goals: team.sumGoals / count,
+          assists: team.sumAssists / count,
+          cleanSheets: team.sumCleanSheets / count,
+          total: team.sumTotal / count
+        };
+      });
+      
+      // Calculate variance across teams for each metric
+      const goalVariance = calculateVariance(teamAverages.map(t => t.goals));
+      const assistVariance = calculateVariance(teamAverages.map(t => t.assists));
+      const cleanSheetVariance = calculateVariance(teamAverages.map(t => t.cleanSheets));
+      const totalVariance = calculateVariance(teamAverages.map(t => t.total));
+      
+      // Combined variance (weighted - total variance is most important)
+      const combinedVariance = totalVariance * 2 + goalVariance + assistVariance + cleanSheetVariance;
+      
+      if(combinedVariance < bestVariance){
+        bestVariance = combinedVariance;
+        bestTeam = teamIdx;
+      }
+    }
+    
+    // Assign player to best team
+    teams[bestTeam].players.push(player);
+    teams[bestTeam].sumGoals += player.goals;
+    teams[bestTeam].sumAssists += player.assists;
+    teams[bestTeam].sumCleanSheets += player.cleanSheets;
+    teams[bestTeam].sumTotal += player.total;
+  });
+  
+  // Convert to final format with team averages
+  return teams.map(team => {
+    const count = team.players.length;
+    const averages = getTeamAverages(team);
+    return {
+      players: team.players,
+      goals: averages.goals,
+      assists: averages.assists,
+      cleanSheets: averages.cleanSheets,
+      total: averages.total
+    };
+  });
+}
+
+function updateTeamBalancer(){
+  const numTeams = parseInt(document.getElementById('teamCountSelect').value);
+  const players = Array.from(selectedPlayers);
+  
+  if(players.length === 0){
+    document.getElementById('teamBalancerResults').innerHTML = 
+      '<div class="empty-state">Select players to balance teams</div>';
+    return;
+  }
+  
+  if(players.length < numTeams){
+    document.getElementById('teamBalancerResults').innerHTML = 
+      `<div class="empty-state">Need at least ${numTeams} players for ${numTeams} teams</div>`;
+    return;
+  }
+  
+  const teams = balanceTeams(players, numTeams);
+  
+  const teamNames = ['Blue', 'Yellow', 'Red', 'Black'];
+  const html = teams.map((team, idx) => {
+    const teamName = teamNames[idx] || `Team ${idx + 1}`;
+    return `
+      <div class="team-container">
+        <div class="team-header">
+          <div class="team-title">${teamName}</div>
+          <div class="team-stats">
+            <span>⚽ ${team.goals.toFixed(2)}</span>
+            <span>🎯 ${team.assists.toFixed(2)}</span>
+            <span>🛡️ ${team.cleanSheets.toFixed(2)}</span>
+            <span>Total: ${team.total.toFixed(2)}</span>
+          </div>
+        </div>
+        <div class="team-players">
+          ${team.players.map(p => `
+            <div class="team-player-card">
+              <div class="team-player-card-name">${p.name}</div>
+              <div class="team-player-card-stats">
+                ⚽${p.goals.toFixed(2)} 🎯${p.assists.toFixed(2)} 🛡️${p.cleanSheets.toFixed(2)}
+                ${p.attendance > 0 ? `<br><span style="font-size:10px;color:var(--muted-2);">(${p.attendance} practices)</span>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById('teamBalancerResults').innerHTML = html;
+}
+
 function showView(view){
   document.getElementById('totalView').style.display = (view==='total')?'block':'none';
   document.getElementById('weeklyView').style.display = (view==='weekly')?'block':'none';
+  document.getElementById('teamsView').style.display = (view==='teams')?'block':'none';
   document.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
   event.target.classList.add('active');
   if(view==='total'){
     renderLeaderboard(); renderActiveStreaks(); renderHotStreak(); renderMilestones(); renderBiggestClimber(); renderSeasonStats();
-  }else{
+  }else if(view==='weekly'){
     populatePracticeSelector(); updatePracticeView();
+  }else if(view==='teams'){
+    renderPlayerSelection();
+    document.getElementById('teamBalancerResults').innerHTML = 
+      '<div class="empty-state">Select players and click "Generate Teams" to balance teams</div>';
   }
 }
 
