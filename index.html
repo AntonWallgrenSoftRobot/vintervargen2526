@@ -1466,6 +1466,9 @@ function loadTeamBalancerState(){
       document.getElementById('softTemp').value = savedRandomness;
       const val = savedRandomness === 'random' ? 'random' : parseFloat(savedRandomness);
       setRandomness(val);
+    } else {
+      // Default to "Some" (0.5) if no saved value
+      setRandomness(0.5);
     }
     
     const savedSeed = localStorage.getItem('teamBalancer_seed');
