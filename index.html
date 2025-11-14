@@ -1439,145 +1439,151 @@ function addNewPlayer(){
 }
 
 function balanceTeams(players, numTeams){
-  if(players.length === 0) return [];
-  
-  // Helper function to calculate variance of an array
-  function calculateVariance(values){
-    if(values.length === 0) return Infinity;
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
-    return variance;
-  }
-  
-  // Helper function to calculate team averages
-  function getTeamAverages(team){
-    const count = team.players.length;
-    if(count === 0) return {goals: 0, assists: 0, cleanSheets: 0, total: 0};
-    
-    const avgGoals = team.sumGoals / count;
-    const avgAssists = team.sumAssists / count;
-    const avgCleanSheets = team.sumCleanSheets / count;
-    const avgTotal = avgGoals + avgAssists + avgCleanSheets;
-    
-    return {goals: avgGoals, assists: avgAssists, cleanSheets: avgCleanSheets, total: avgTotal};
-  }
-  
-  // Get player stats
+  if(!players.length) return [];
+
+  // --- Build player strengths from season averages ---
   const stats = calculateTotalStats();
-  const playerData = players.map(name => {
-    const s = stats[name] || {goals:0, assists:0, cleanSheets:0, attendance:0};
-    const attendance = s.attendance || 0;
-    
-    // Calculate averages per practice (if attendance > 0, otherwise use 0)
-    const avgGoals = attendance > 0 ? (s.goals || 0) / attendance : 0;
-    const avgAssists = attendance > 0 ? (s.assists || 0) / attendance : 0;
-    const avgCleanSheets = attendance > 0 ? (s.cleanSheets || 0) / attendance : 0;
-    const avgTotal = avgGoals + avgAssists + avgCleanSheets;
-    
-    return {
-      name,
-      goals: avgGoals,
-      assists: avgAssists,
-      cleanSheets: avgCleanSheets,
-      total: avgTotal,
-      attendance: attendance,
-      // Keep raw stats for display
-      rawGoals: s.goals || 0,
-      rawAssists: s.assists || 0,
-      rawCleanSheets: s.cleanSheets || 0
-    };
-  });
-  
-  // Sort by total average (descending) for better distribution
-  playerData.sort((a, b) => b.total - a.total);
-  
-  // Initialize teams - track sums and counts separately
-  const teams = Array(numTeams).fill(null).map(() => ({
-    players: [],
-    sumGoals: 0,      // Sum of player goal averages
-    sumAssists: 0,    // Sum of player assist averages
-    sumCleanSheets: 0, // Sum of player clean sheet averages
-    sumTotal: 0       // Sum of player total averages
+  const pdata = players.map(name=>{
+    const s = stats[name] || {goals:0,assists:0,cleanSheets:0,attendance:0};
+    const A = s.attendance || 0;
+    const g = A ? (s.goals||0)/A : 0;
+    const a = A ? (s.assists||0)/A : 0;
+    const c = A ? (s.cleanSheets||0)/A : 0;
+    return { name, goals:g, assists:a, cleanSheets:c, total:g+a+c, attendance:A };
+  }).sort((x,y)=> y.total - x.total); // strongest → weakest
+
+  const N = pdata.length, base = Math.floor(N/numTeams), r = N % numTeams;
+
+  // --- Teams track sums and players
+  const teams = Array.from({length:numTeams}, ()=>({
+    players: [], sumGoals:0, sumAssists:0, sumCleanSheets:0, sumTotal:0
   }));
-  
-  // Greedy assignment: assign each player to the team that minimizes variance
-  // while keeping teams as equal in size as possible
-  playerData.forEach(player => {
-    // First, find the minimum team size
-    const minTeamSize = Math.min(...teams.map(team => team.players.length));
-    
-    // Only consider teams with the minimum size
-    const candidateTeams = teams
-      .map((team, idx) => ({ team, idx, size: team.players.length }))
-      .filter(({ size }) => size === minTeamSize)
-      .map(({ team, idx }) => ({ team, idx }));
-    
-    let bestTeam = candidateTeams[0].idx;
-    let bestVariance = Infinity;
-    
-    // Try assigning to each candidate team and see which minimizes variance
-    for(const { team, idx: teamIdx } of candidateTeams){
-      // Calculate what team averages would be if we add this player
-      const tempTeams = teams.map((t, idx) => {
-        if(idx === teamIdx){
-          // Add player to this team
-          return {
-            ...t,
-            sumGoals: t.sumGoals + player.goals,
-            sumAssists: t.sumAssists + player.assists,
-            sumCleanSheets: t.sumCleanSheets + player.cleanSheets,
-            sumTotal: t.sumTotal + player.total,
-            players: [...t.players, player]
-          };
-        }
-        return t;
-      });
+
+  const avg = (t)=> t.players.length ? t.sumTotal / t.players.length : 0;
+
+  // --- Phase 1: fill equal base rosters (LPT by total sum)
+  const extras = [];
+
+  for(const p of pdata){
+    const haveRoom = teams.some(t => t.players.length < base);
+    if(!haveRoom){ extras.push(p); continue; }
+
+    // pick team with smallest sumTotal (tie: smaller size, then index)
+    let best = -1;
+    for(let i=0;i<teams.length;i++){
+      const t = teams[i];
+      if(t.players.length >= base) continue;
+      if(best === -1){
+        best = i; continue;
+      }
+      const b = teams[best];
+      if(t.sumTotal < b.sumTotal ||
+         (t.sumTotal === b.sumTotal && (t.players.length < b.players.length || 
+                                        (t.players.length === b.players.length && i < best)))){
+        best = i;
+      }
+    }
+    const t = teams[best];
+    t.players.push(p);
+    t.sumGoals += p.goals; t.sumAssists += p.assists; t.sumCleanSheets += p.cleanSheets; t.sumTotal += p.total;
+  }
+
+  // --- Phase 2: process extras weakest → strongest with strongest→weakest swap
+  extras.sort((a,b)=> a.total - b.total); // weakest first
+
+  function teamAveragesAfterMove(Sidx, Widx, SsumAfter, WsumAfter){
+    const avgs = [];
+    for(let i=0;i<teams.length;i++){
+      if(i===Sidx) avgs.push(SsumAfter / base);             // S returns to base
+      else if(i===Widx) avgs.push(WsumAfter / (base+1));    // W becomes base+1
+      else avgs.push(avg(teams[i]));
+    }
+    return avgs;
+  }
+
+  const range = arr => Math.max(...arr) - Math.min(...arr);
+  const variance = arr => {
+    const m = arr.reduce((s,x)=>s+x,0)/arr.length;
+    return arr.reduce((s,x)=>s+(x-m)*(x-m),0)/arr.length;
+  };
+
+  for(const u of extras.slice(0, r)){
+    // strongest team by current average
+    let S = 0; for(let i=1;i<teams.length;i++) if(avg(teams[i]) > avg(teams[S])) S = i;
+
+    // weakest team among those still at base size
+    let W = -1, minA = Infinity;
+    for(let i=0;i<teams.length;i++){
+      if(teams[i].players.length !== base) continue;
+      const a = avg(teams[i]);
+      if(a < minA){ minA = a; W = i; }
+    }
+    if(W === -1){ // safety fallback (shouldn't happen)
+      W = teams.map((t,i)=>({i,a:avg(t)})).sort((x,y)=> x.a - y.a)[0].i;
+    }
+
+    // Temporarily add u to S
+    teams[S].players.push(u);
+    teams[S].sumGoals += u.goals; teams[S].sumAssists += u.assists;
+    teams[S].sumCleanSheets += u.cleanSheets; teams[S].sumTotal += u.total;
+
+    // Choose p ∈ S (excluding u) to send to W that minimizes range of team averages
+    // Constraint: teams with more players (base+1) should not have higher averages
+    const Splayers = teams[S].players.slice(); // after adding u
+    let bestPi = -1, bestRange = Infinity, bestVar = Infinity;
+    for(let pi=0; pi<Splayers.length; pi++){
+      const p = Splayers[pi];
+      if(p.name === u.name) continue;
+      const SsumAfter = teams[S].sumTotal - p.total;        // S back to base size
+      const WsumAfter = teams[W].sumTotal + p.total;        // W to base+1
+      const SavgAfter = SsumAfter / base;                  // S average at base size
+      const WavgAfter = WsumAfter / (base+1);              // W average at base+1 size
       
-      // Calculate team averages for all teams
-      const teamAverages = tempTeams.map(team => {
-        const count = team.players.length;
-        if(count === 0) return {goals: 0, assists: 0, cleanSheets: 0, total: 0};
-        return {
-          goals: team.sumGoals / count,
-          assists: team.sumAssists / count,
-          cleanSheets: team.sumCleanSheets / count,
-          total: team.sumTotal / count
-        };
-      });
+      // Constraint: W (base+1) should not have higher average than S (base)
+      if(WavgAfter > SavgAfter) continue;
       
-      // Calculate variance across teams for each metric
-      const goalVariance = calculateVariance(teamAverages.map(t => t.goals));
-      const assistVariance = calculateVariance(teamAverages.map(t => t.assists));
-      const cleanSheetVariance = calculateVariance(teamAverages.map(t => t.cleanSheets));
-      const totalVariance = calculateVariance(teamAverages.map(t => t.total));
-      
-      // Combined variance (weighted - total variance is most important)
-      const combinedVariance = totalVariance * 2 + goalVariance + assistVariance + cleanSheetVariance;
-      
-      if(combinedVariance < bestVariance){
-        bestVariance = combinedVariance;
-        bestTeam = teamIdx;
+      const avgs = teamAveragesAfterMove(S, W, SsumAfter, WsumAfter);
+      const rge  = range(avgs);
+      const varr = variance(avgs);
+      if(rge < bestRange || (rge === bestRange && varr < bestVar)){
+        bestRange = rge; bestVar = varr; bestPi = pi;
       }
     }
     
-    // Assign player to best team
-    teams[bestTeam].players.push(player);
-    teams[bestTeam].sumGoals += player.goals;
-    teams[bestTeam].sumAssists += player.assists;
-    teams[bestTeam].sumCleanSheets += player.cleanSheets;
-    teams[bestTeam].sumTotal += player.total;
-  });
-  
-  // Convert to final format with team averages
-  return teams.map(team => {
-    const count = team.players.length;
-    const averages = getTeamAverages(team);
+    // If no valid swap found (shouldn't happen, but safety check)
+    if(bestPi === -1){
+      // Fallback: pick the weakest player from S (excluding u)
+      for(let pi=0; pi<Splayers.length; pi++){
+        const p = Splayers[pi];
+        if(p.name === u.name) continue;
+        if(bestPi === -1 || p.total < Splayers[bestPi].total){
+          bestPi = pi;
+        }
+      }
+    }
+
+    // Commit the selected move
+    const p = Splayers[bestPi];
+    // remove p from S (keep u)
+    const removeIndex = teams[S].players.findIndex(x => x.name === p.name);
+    teams[S].players.splice(removeIndex, 1);
+    teams[S].sumGoals -= p.goals; teams[S].sumAssists -= p.assists;
+    teams[S].sumCleanSheets -= p.cleanSheets; teams[S].sumTotal -= p.total;
+    // add p to W
+    teams[W].players.push(p);
+    teams[W].sumGoals += p.goals; teams[W].sumAssists += p.assists;
+    teams[W].sumCleanSheets += p.cleanSheets; teams[W].sumTotal += p.total;
+  }
+
+  // --- Return in your UI shape (averages)
+  return teams.map(t=>{
+    const n = t.players.length || 1;
     return {
-      players: team.players,
-      goals: averages.goals,
-      assists: averages.assists,
-      cleanSheets: averages.cleanSheets,
-      total: averages.total
+      players: t.players,
+      goals: t.sumGoals / n,
+      assists: t.sumAssists / n,
+      cleanSheets: t.sumCleanSheets / n,
+      total: t.sumTotal / n
     };
   });
 }
