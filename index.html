@@ -662,6 +662,49 @@ td{padding:16px; font-size:14px; font-weight:500;}
 .team-player-card-stats{
   font-size:11px; color:var(--muted-2);
 }
+
+/* Range input styling */
+input[type="range"]{
+  -webkit-appearance:none;
+  appearance:none;
+  height:6px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:3px;
+  outline:none;
+  cursor:pointer;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:18px;
+  height:18px;
+  background:var(--green);
+  border:2px solid var(--panel);
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(57,255,20,.3);
+  transition:all .2s;
+}
+input[type="range"]::-webkit-slider-thumb:hover{
+  transform:scale(1.1);
+  box-shadow:0 4px 12px rgba(57,255,20,.5);
+}
+input[type="range"]::-moz-range-thumb{
+  width:18px;
+  height:18px;
+  background:var(--green);
+  border:2px solid var(--panel);
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(57,255,20,.3);
+}
+input[type="range"]::-moz-range-track{
+  height:6px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:3px;
+}
 </style>
 </head>
 <body>
@@ -790,6 +833,20 @@ td{padding:16px; font-size:14px; font-weight:500;}
                   <input type="text" id="newPlayerInput" placeholder="Player name" style="flex:1;padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-size:14px;outline:none;box-shadow:var(--shadow-sm);" onkeypress="if(event.key==='Enter') addNewPlayer()">
                   <button onclick="addNewPlayer()" class="btn" style="padding:12px 24px;">Add</button>
                 </div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted);font-size:13px;">Randomness</label>
+                <div class="controls" style="width:100%;">
+                  <button class="btn" id="randomNone" onclick="setRandomness(0)" style="flex:1;border:1px solid var(--border);">None</button>
+                  <button class="btn active" id="randomSome" onclick="setRandomness(0.5)" style="flex:1;border:1px solid var(--border);">Some</button>
+                  <button class="btn" id="randomMuch" onclick="setRandomness(1)" style="flex:1;border:1px solid var(--border);">Much</button>
+                  <button class="btn" id="randomTotal" onclick="setRandomness('random')" style="flex:1;border:1px solid var(--border);">Total</button>
+                </div>
+                <input type="hidden" id="softTemp" value="0.5"/>
+              </div>
+              <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted);font-size:13px;">Seed (optional)</label>
+                <input id="softSeed" type="number" placeholder="e.g. 1234" style="width:100%;padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-size:14px;outline:none;box-shadow:var(--shadow-sm);"/>
               </div>
               <div style="margin-bottom:16px;">
                 <button onclick="updateTeamBalancer()" class="btn active" style="padding:14px 32px;width:100%;font-size:16px;font-weight:700;">
@@ -1438,154 +1495,177 @@ function addNewPlayer(){
   }
 }
 
-function balanceTeams(players, numTeams){
-  if(!players.length) return [];
+// Seeded RNG so the same seed reproduces the same teams
+function mulberry32(seed){
+  let t = seed >>> 0;
+  return function(){
+    t += 0x6D2B79F5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
-  // --- Build player strengths from season averages ---
+// Softmin sampler over [{i, score}], lower score = better
+function softminPick(scored, temp01, rng){
+  // Completely random: uniform selection
+  if(temp01 === 'random'){
+    return scored[Math.floor(rng() * scored.length)];
+  }
+  
+  // map slider r∈[0,1] to τ; square gives finer control near greedy
+  const tau = Math.max(1e-6, 0.02 + 0.98*(temp01*temp01));
+  const vals = scored.map(x => x.score);
+  const smin = Math.min(...vals), smax = Math.max(...vals);
+  const scale = Math.max(1e-9, smax - smin);          // range-based normalization
+
+  // stable weights
+  const weights = scored.map(x => Math.exp(-(x.score - smin)/(tau*scale)));
+  let Z = 0; for(const w of weights) Z += w;
+  if(!isFinite(Z) || Z === 0) return scored[0];       // fallback to best
+
+  // sample
+  let u = rng()*Z;
+  for(let k=0;k<scored.length;k++){
+    u -= weights[k];
+    if(u <= 0) return scored[k];
+  }
+  return scored[scored.length-1];
+}
+
+function balanceTeams(players, numTeams, randomness=0, seed=null){
+  const rng = seed==null ? Math.random : mulberry32(seed);
+
+  // Build player strengths from season averages
   const stats = calculateTotalStats();
   const pdata = players.map(name=>{
     const s = stats[name] || {goals:0,assists:0,cleanSheets:0,attendance:0};
-    const A = s.attendance || 0;
+    const A = s.attendance||0;
     const g = A ? (s.goals||0)/A : 0;
     const a = A ? (s.assists||0)/A : 0;
     const c = A ? (s.cleanSheets||0)/A : 0;
     return { name, goals:g, assists:a, cleanSheets:c, total:g+a+c, attendance:A };
-  }).sort((x,y)=> y.total - x.total); // strongest → weakest
+  }).sort((x,y)=> y.total - x.total); // strong → weak
 
   const N = pdata.length, base = Math.floor(N/numTeams), r = N % numTeams;
 
-  // --- Teams track sums and players
   const teams = Array.from({length:numTeams}, ()=>({
-    players: [], sumGoals:0, sumAssists:0, sumCleanSheets:0, sumTotal:0
+    players:[], sumGoals:0, sumAssists:0, sumCleanSheets:0, sumTotal:0
   }));
 
-  const avg = (t)=> t.players.length ? t.sumTotal / t.players.length : 0;
+  const avg  = t => t.players.length ? t.sumTotal / t.players.length : 0;
+  const range = arr => Math.max(...arr) - Math.min(...arr);
 
-  // --- Phase 1: fill equal base rosters (LPT by total sum)
+  // -------- Phase 1: fill equal base rosters using LPT (smallest sumTotal)
   const extras = [];
-
   for(const p of pdata){
-    const haveRoom = teams.some(t => t.players.length < base);
-    if(!haveRoom){ extras.push(p); continue; }
+    const elig = [];
+    for(let i=0;i<teams.length;i++) if(teams[i].players.length < base) elig.push(i);
+    if(!elig.length){ extras.push(p); continue; }
 
-    // pick team with smallest sumTotal (tie: smaller size, then index)
-    let best = -1;
-    for(let i=0;i<teams.length;i++){
-      const t = teams[i];
-      if(t.players.length >= base) continue;
-      if(best === -1){
-        best = i; continue;
-      }
-      const b = teams[best];
-      if(t.sumTotal < b.sumTotal ||
-         (t.sumTotal === b.sumTotal && (t.players.length < b.players.length || 
-                                        (t.players.length === b.players.length && i < best)))){
-        best = i;
-      }
-    }
-    const t = teams[best];
+    // Score by sumTotal (LPT: assign to lightest team)
+    // Lower sumTotal = better (lighter team)
+    const scored = elig.map(i=>{
+      return { i, score: teams[i].sumTotal };
+    }).sort((a,b)=> a.score - b.score);
+
+    const pick = randomness !== 0 ? softminPick(scored, randomness, rng) : scored[0];
+    const t = teams[pick.i];
     t.players.push(p);
-    t.sumGoals += p.goals; t.sumAssists += p.assists; t.sumCleanSheets += p.cleanSheets; t.sumTotal += p.total;
+    t.sumGoals+=p.goals; t.sumAssists+=p.assists; t.sumCleanSheets+=p.cleanSheets; t.sumTotal+=p.total;
   }
 
-  // --- Phase 2: process extras weakest → strongest with strongest→weakest swap
+  // -------- Phase 2: handle extras
   extras.sort((a,b)=> a.total - b.total); // weakest first
 
-  function teamAveragesAfterMove(Sidx, Widx, SsumAfter, WsumAfter){
-    const avgs = [];
-    for(let i=0;i<teams.length;i++){
-      if(i===Sidx) avgs.push(SsumAfter / base);             // S returns to base
-      else if(i===Widx) avgs.push(WsumAfter / (base+1));    // W becomes base+1
-      else avgs.push(avg(teams[i]));
+  if(randomness === 'random'){
+    // Completely random: just assign extras to random teams
+    for(const u of extras.slice(0, r)){
+      // Pick a random team that's still at base size
+      const eligible = [];
+      for(let i=0;i<teams.length;i++) if(teams[i].players.length===base) eligible.push(i);
+      if(eligible.length === 0) break; // safety
+      const randomTeam = eligible[Math.floor(rng() * eligible.length)];
+      const t = teams[randomTeam];
+      t.players.push(u);
+      t.sumGoals+=u.goals; t.sumAssists+=u.assists; t.sumCleanSheets+=u.cleanSheets; t.sumTotal+=u.total;
     }
-    return avgs;
+  } else {
+    // Swap-based assignment for balanced teams
+    for(const u of extras.slice(0, r)){
+      // Pick S ≈ strongest team (higher avg is "stronger").
+      // Use softmin on scoreS = -avg to bias toward strongest.
+      const Sopts = teams.map((t,i)=>({ i, score: -avg(t) }))
+                         .sort((a,b)=> a.score - b.score);
+      const S = randomness !== 0 ? softminPick(Sopts, randomness*0.75, rng).i : Sopts[0].i;
+
+      // Pick W among teams still at base size, bias toward weakest (lower avg)
+      const Wpool = [];
+      for(let i=0;i<teams.length;i++) if(teams[i].players.length===base)
+        Wpool.push({ i, score: avg(teams[i]) });
+      Wpool.sort((a,b)=> a.score - b.score);
+      const W = randomness !== 0 ? softminPick(Wpool, randomness*0.75, rng).i : Wpool[0].i;
+
+      // Temporarily add u to S
+      const tS = teams[S], tW = teams[W];
+      tS.players.push(u);
+      tS.sumGoals+=u.goals; tS.sumAssists+=u.assists; tS.sumCleanSheets+=u.cleanSheets; tS.sumTotal+=u.total;
+
+      // Choose p ∈ S\{u} to move to W, minimizing resulting range of team averages
+      // Constraint: teams with more players (base+1) should not have higher averages
+      const candidates = tS.players.filter(x=>x.name!==u.name).map(p=>{
+        const SsumAfter = tS.sumTotal - p.total;                   // S returns to base size
+        const WsumAfter = tW.sumTotal + p.total;                   // W becomes base+1
+        const SavgAfter = SsumAfter / base;                        // S average at base size
+        const WavgAfter = WsumAfter / (base+1);                    // W average at base+1 size
+        const avgs = teams.map((t,idx)=>{
+          if(idx===S) return SavgAfter;
+          if(idx===W) return WavgAfter;
+          return avg(t);
+        });
+        // Constraint: W (base+1) should not have higher average than S (base)
+        const valid = WavgAfter <= SavgAfter;
+        return { p, score: valid ? range(avgs) : Infinity, valid };
+      }).filter(c => c.valid).sort((a,b)=> a.score - b.score);
+
+      // Fallback if no valid candidates (shouldn't happen, but safety)
+      if(candidates.length === 0){
+        // Just pick the weakest player from S
+        const weakest = tS.players.filter(x=>x.name!==u.name)
+          .sort((a,b)=> a.total - b.total)[0];
+        candidates.push({ p: weakest, score: 0, valid: true });
+      }
+
+      const chosen = randomness !== 0 ? softminPick(candidates, randomness, rng) : candidates[0];
+      const p = chosen.p;
+
+      // Commit: move p to W (u stays on S)
+      const rm = tS.players.findIndex(x=>x.name===p.name);
+      tS.players.splice(rm,1);
+      tS.sumGoals-=p.goals; tS.sumAssists-=p.assists; tS.sumCleanSheets-=p.cleanSheets; tS.sumTotal-=p.total;
+
+      tW.players.push(p);
+      tW.sumGoals+=p.goals; tW.sumAssists+=p.assists; tW.sumCleanSheets+=p.cleanSheets; tW.sumTotal+=p.total;
+    }
   }
 
-  const range = arr => Math.max(...arr) - Math.min(...arr);
-  const variance = arr => {
-    const m = arr.reduce((s,x)=>s+x,0)/arr.length;
-    return arr.reduce((s,x)=>s+(x-m)*(x-m),0)/arr.length;
-  };
-
-  for(const u of extras.slice(0, r)){
-    // strongest team by current average
-    let S = 0; for(let i=1;i<teams.length;i++) if(avg(teams[i]) > avg(teams[S])) S = i;
-
-    // weakest team among those still at base size
-    let W = -1, minA = Infinity;
-    for(let i=0;i<teams.length;i++){
-      if(teams[i].players.length !== base) continue;
-      const a = avg(teams[i]);
-      if(a < minA){ minA = a; W = i; }
-    }
-    if(W === -1){ // safety fallback (shouldn't happen)
-      W = teams.map((t,i)=>({i,a:avg(t)})).sort((x,y)=> x.a - y.a)[0].i;
-    }
-
-    // Temporarily add u to S
-    teams[S].players.push(u);
-    teams[S].sumGoals += u.goals; teams[S].sumAssists += u.assists;
-    teams[S].sumCleanSheets += u.cleanSheets; teams[S].sumTotal += u.total;
-
-    // Choose p ∈ S (excluding u) to send to W that minimizes range of team averages
-    // Constraint: teams with more players (base+1) should not have higher averages
-    const Splayers = teams[S].players.slice(); // after adding u
-    let bestPi = -1, bestRange = Infinity, bestVar = Infinity;
-    for(let pi=0; pi<Splayers.length; pi++){
-      const p = Splayers[pi];
-      if(p.name === u.name) continue;
-      const SsumAfter = teams[S].sumTotal - p.total;        // S back to base size
-      const WsumAfter = teams[W].sumTotal + p.total;        // W to base+1
-      const SavgAfter = SsumAfter / base;                  // S average at base size
-      const WavgAfter = WsumAfter / (base+1);              // W average at base+1 size
-      
-      // Constraint: W (base+1) should not have higher average than S (base)
-      if(WavgAfter > SavgAfter) continue;
-      
-      const avgs = teamAveragesAfterMove(S, W, SsumAfter, WsumAfter);
-      const rge  = range(avgs);
-      const varr = variance(avgs);
-      if(rge < bestRange || (rge === bestRange && varr < bestVar)){
-        bestRange = rge; bestVar = varr; bestPi = pi;
-      }
-    }
-    
-    // If no valid swap found (shouldn't happen, but safety check)
-    if(bestPi === -1){
-      // Fallback: pick the weakest player from S (excluding u)
-      for(let pi=0; pi<Splayers.length; pi++){
-        const p = Splayers[pi];
-        if(p.name === u.name) continue;
-        if(bestPi === -1 || p.total < Splayers[bestPi].total){
-          bestPi = pi;
-        }
-      }
-    }
-
-    // Commit the selected move
-    const p = Splayers[bestPi];
-    // remove p from S (keep u)
-    const removeIndex = teams[S].players.findIndex(x => x.name === p.name);
-    teams[S].players.splice(removeIndex, 1);
-    teams[S].sumGoals -= p.goals; teams[S].sumAssists -= p.assists;
-    teams[S].sumCleanSheets -= p.cleanSheets; teams[S].sumTotal -= p.total;
-    // add p to W
-    teams[W].players.push(p);
-    teams[W].sumGoals += p.goals; teams[W].sumAssists += p.assists;
-    teams[W].sumCleanSheets += p.cleanSheets; teams[W].sumTotal += p.total;
-  }
-
-  // --- Return in your UI shape (averages)
+  // Shape for UI
   return teams.map(t=>{
     const n = t.players.length || 1;
     return {
       players: t.players,
-      goals: t.sumGoals / n,
-      assists: t.sumAssists / n,
-      cleanSheets: t.sumCleanSheets / n,
-      total: t.sumTotal / n
+      goals: t.sumGoals/n, assists: t.sumAssists/n, cleanSheets: t.sumCleanSheets/n, total: t.sumTotal/n
     };
   });
+}
+
+function setRandomness(value){
+  document.getElementById('softTemp').value = value;
+  document.querySelectorAll('#randomNone, #randomSome, #randomMuch, #randomTotal').forEach(btn => btn.classList.remove('active'));
+  if(value === 0) document.getElementById('randomNone').classList.add('active');
+  else if(value === 0.5) document.getElementById('randomSome').classList.add('active');
+  else if(value === 1) document.getElementById('randomMuch').classList.add('active');
+  else if(value === 'random') document.getElementById('randomTotal').classList.add('active');
 }
 
 function updateTeamBalancer(){
@@ -1604,7 +1684,12 @@ function updateTeamBalancer(){
     return;
   }
   
-  const teams = balanceTeams(players, numTeams);
+  const tempVal = document.getElementById('softTemp')?.value;
+  const temp01  = tempVal === 'random' ? 'random' : (parseFloat(tempVal) || 0);
+  const seedVal = document.getElementById('softSeed')?.value;
+  const seed    = seedVal === '' ? null : Number(seedVal);
+  
+  const teams = balanceTeams(players, numTeams, temp01, seed);
   
   const teamNames = ['Blue', 'Yellow', 'Red', 'Black'];
   const html = teams.map((team, idx) => {
@@ -1650,6 +1735,7 @@ function showView(view){
     populatePracticeSelector(); updatePracticeView();
   }else if(view==='teams'){
     renderPlayerSelection();
+    setRandomness(0.5); // Initialize to "Some"
     document.getElementById('teamBalancerResults').innerHTML = 
       '<div class="empty-state">Select players and click "Generate Teams" to balance teams</div>';
   }
