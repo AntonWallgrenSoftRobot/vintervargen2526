@@ -719,7 +719,7 @@ input[type="range"]::-moz-range-track{
         </div>
         <div class="header-card">
           <div class="controls">
-            <button class="btn active" onclick="showView('total')">Total Season</button>
+            <button class="btn" onclick="showView('total')">Total Season</button>
             <button class="btn" onclick="showView('weekly')">Practice View</button>
             <button class="btn" onclick="showView('teams')">Team Balancer</button>
           </div>
@@ -727,7 +727,7 @@ input[type="range"]::-moz-range-track{
       </div>
 
       <!-- TOTAL VIEW -->
-      <section id="totalView">
+      <section id="totalView" style="display:none;">
         <div class="grid">
           <div class="panel leaderboard">
             <div class="section-title">🏆 Leaderboard</div>
@@ -822,7 +822,7 @@ input[type="range"]::-moz-range-track{
             <div style="margin-bottom:20px;">
               <div style="margin-bottom:16px;">
                 <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted);font-size:13px;">Number of Teams</label>
-                <select id="teamCountSelect" style="padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-weight:600;outline:none;cursor:pointer;font-size:14px;box-shadow:var(--shadow-sm);width:100%;max-width:200px;">
+                <select id="teamCountSelect" onchange="saveTeamBalancerState()" style="padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-weight:600;outline:none;cursor:pointer;font-size:14px;box-shadow:var(--shadow-sm);width:100%;max-width:200px;">
                   <option value="3">3 Teams</option>
                   <option value="4">4 Teams</option>
                 </select>
@@ -846,11 +846,14 @@ input[type="range"]::-moz-range-track{
               </div>
               <div style="margin-bottom:16px;">
                 <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--muted);font-size:13px;">Seed (optional)</label>
-                <input id="softSeed" type="number" placeholder="e.g. 1234" style="width:100%;padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-size:14px;outline:none;box-shadow:var(--shadow-sm);"/>
+                <input id="softSeed" type="number" placeholder="e.g. 1234" onchange="saveTeamBalancerState()" oninput="saveTeamBalancerState()" style="width:100%;padding:12px 18px;background:var(--panel);color:var(--white);border:1px solid var(--border);border-radius:14px;font-size:14px;outline:none;box-shadow:var(--shadow-sm);"/>
               </div>
-              <div style="margin-bottom:16px;">
-                <button onclick="updateTeamBalancer()" class="btn active" style="padding:14px 32px;width:100%;font-size:16px;font-weight:700;">
+              <div style="margin-bottom:16px;display:flex;gap:8px;">
+                <button onclick="updateTeamBalancer()" class="btn active" style="flex:1.3;padding:14px 24px;font-size:15px;font-weight:700;border:1px solid var(--border);">
                   ⚖️ Generate Teams
+                </button>
+                <button onclick="clearTeamBalancer()" class="btn" style="flex:1;padding:14px 24px;font-size:15px;font-weight:600;border:1px solid var(--border);">
+                  🗑️ Clear
                 </button>
               </div>
             </div>
@@ -1374,17 +1377,20 @@ function updatePracticeView(){
   renderDeviationLeaderForPractice(practice);
   const tbody=document.getElementById('weeklyStatsBody');
 
-  tbody.innerHTML = practice.stats.map(p=>{
-    const pts=p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5);
-    return `<tr>
-      <td><span class="player-name">${p.name}</span></td>
-      <td>${p.goals}</td>
-      <td>${p.assists}</td>
-      <td>${p.cleanSheet}</td>
-      <td>${renderStars(p.turbotorped)}</td>
-      <td><span class="points">${pts}</span></td>
-    </tr>`;
-  }).join('');
+  tbody.innerHTML = practice.stats
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(p=>{
+      const pts=p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5);
+      return `<tr>
+        <td><span class="player-name">${p.name}</span></td>
+        <td>${p.goals}</td>
+        <td>${p.assists}</td>
+        <td>${p.cleanSheet}</td>
+        <td>${renderStars(p.turbotorped)}</td>
+        <td><span class="points">${pts}</span></td>
+      </tr>`;
+    }).join('');
 
   const team = pickPracticeTopTeam(practice);
   document.getElementById('weeklyTeam').innerHTML = `
@@ -1419,6 +1425,96 @@ function updatePracticeView(){
 /* ------- Team Balancer ------- */
 let selectedPlayers = new Set();
 let newPlayers = new Set();
+let lastGeneratedTeams = null;
+
+// Save to localStorage
+function saveTeamBalancerState(){
+  try {
+    localStorage.setItem('teamBalancer_selectedPlayers', JSON.stringify(Array.from(selectedPlayers)));
+    localStorage.setItem('teamBalancer_newPlayers', JSON.stringify(Array.from(newPlayers)));
+    localStorage.setItem('teamBalancer_teamCount', document.getElementById('teamCountSelect')?.value || '3');
+    localStorage.setItem('teamBalancer_randomness', document.getElementById('softTemp')?.value || '0.5');
+    localStorage.setItem('teamBalancer_seed', document.getElementById('softSeed')?.value || '');
+    if(lastGeneratedTeams){
+      localStorage.setItem('teamBalancer_generatedTeams', JSON.stringify(lastGeneratedTeams));
+    }
+  } catch(e) {
+    console.warn('Failed to save team balancer state:', e);
+  }
+}
+
+// Load from localStorage
+function loadTeamBalancerState(){
+  try {
+    const savedSelected = localStorage.getItem('teamBalancer_selectedPlayers');
+    if(savedSelected){
+      selectedPlayers = new Set(JSON.parse(savedSelected));
+    }
+    
+    const savedNew = localStorage.getItem('teamBalancer_newPlayers');
+    if(savedNew){
+      newPlayers = new Set(JSON.parse(savedNew));
+    }
+    
+    const savedTeamCount = localStorage.getItem('teamBalancer_teamCount');
+    if(savedTeamCount && document.getElementById('teamCountSelect')){
+      document.getElementById('teamCountSelect').value = savedTeamCount;
+    }
+    
+    const savedRandomness = localStorage.getItem('teamBalancer_randomness');
+    if(savedRandomness){
+      document.getElementById('softTemp').value = savedRandomness;
+      const val = savedRandomness === 'random' ? 'random' : parseFloat(savedRandomness);
+      setRandomness(val);
+    }
+    
+    const savedSeed = localStorage.getItem('teamBalancer_seed');
+    if(savedSeed !== null && document.getElementById('softSeed')){
+      document.getElementById('softSeed').value = savedSeed;
+    }
+    
+    const savedTeams = localStorage.getItem('teamBalancer_generatedTeams');
+    if(savedTeams){
+      lastGeneratedTeams = JSON.parse(savedTeams);
+    }
+  } catch(e) {
+    console.warn('Failed to load team balancer state:', e);
+  }
+}
+
+// Clear all team balancer state
+function clearTeamBalancer(){
+  // Clear in-memory state
+  selectedPlayers = new Set();
+  newPlayers = new Set();
+  lastGeneratedTeams = null;
+  
+  // Clear localStorage
+  try {
+    localStorage.removeItem('teamBalancer_selectedPlayers');
+    localStorage.removeItem('teamBalancer_newPlayers');
+    localStorage.removeItem('teamBalancer_teamCount');
+    localStorage.removeItem('teamBalancer_randomness');
+    localStorage.removeItem('teamBalancer_seed');
+    localStorage.removeItem('teamBalancer_generatedTeams');
+  } catch(e) {
+    console.warn('Failed to clear team balancer state:', e);
+  }
+  
+  // Reset UI
+  renderPlayerSelection();
+  document.getElementById('teamBalancerResults').innerHTML = 
+    '<div class="empty-state">Select players and click "Generate Teams" to balance teams</div>';
+  
+  // Reset settings to defaults
+  if(document.getElementById('teamCountSelect')){
+    document.getElementById('teamCountSelect').value = '3';
+  }
+  setRandomness(0.5); // This will also save, but that's fine
+  if(document.getElementById('softSeed')){
+    document.getElementById('softSeed').value = '';
+  }
+}
 
 function renderPlayerSelection(){
   const stats = calculateTotalStats();
@@ -1478,6 +1574,7 @@ function togglePlayer(name){
     selectedPlayers.add(name);
   }
   renderPlayerSelection();
+  saveTeamBalancerState();
 }
 
 function addNewPlayer(){
@@ -1489,6 +1586,7 @@ function addNewPlayer(){
     selectedPlayers.add(name);
     input.value = '';
     renderPlayerSelection();
+    saveTeamBalancerState();
   } else if(name && stats[name]){
     alert('Player already exists in the database');
     input.value = '';
@@ -1666,6 +1764,7 @@ function setRandomness(value){
   else if(value === 0.5) document.getElementById('randomSome').classList.add('active');
   else if(value === 1) document.getElementById('randomMuch').classList.add('active');
   else if(value === 'random') document.getElementById('randomTotal').classList.add('active');
+  saveTeamBalancerState();
 }
 
 function updateTeamBalancer(){
@@ -1721,34 +1820,77 @@ function updateTeamBalancer(){
   }).join('');
   
   document.getElementById('teamBalancerResults').innerHTML = html;
+  
+  // Save generated teams and state
+  lastGeneratedTeams = { teams, html, numTeams, randomness: temp01, seed };
+  saveTeamBalancerState();
 }
 
-function showView(view){
+// Restore generated teams from saved state
+function restoreGeneratedTeams(){
+  if(lastGeneratedTeams && lastGeneratedTeams.html){
+    document.getElementById('teamBalancerResults').innerHTML = lastGeneratedTeams.html;
+  }
+}
+
+function showView(view, fromRestore = false){
   document.getElementById('totalView').style.display = (view==='total')?'block':'none';
   document.getElementById('weeklyView').style.display = (view==='weekly')?'block':'none';
   document.getElementById('teamsView').style.display = (view==='teams')?'block':'none';
   document.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
+  
+  // Set active button - either from event or by finding the button
+  if(!fromRestore && typeof event !== 'undefined' && event && event.target){
+    event.target.classList.add('active');
+  } else {
+    // Find the button by its onclick attribute
+    const buttons = document.querySelectorAll('.controls .btn');
+    buttons.forEach(btn => {
+      if(btn.getAttribute('onclick') === `showView('${view}')`){
+        btn.classList.add('active');
+      }
+    });
+  }
+  
+  // Save current tab
+  try {
+    localStorage.setItem('selectedTab', view);
+  } catch(e) {
+    console.warn('Failed to save selected tab:', e);
+  }
+  
   if(view==='total'){
     renderLeaderboard(); renderActiveStreaks(); renderHotStreak(); renderMilestones(); renderBiggestClimber(); renderSeasonStats();
   }else if(view==='weekly'){
     populatePracticeSelector(); updatePracticeView();
   }else if(view==='teams'){
+    loadTeamBalancerState(); // Load saved state
     renderPlayerSelection();
-    setRandomness(0.5); // Initialize to "Some"
-    document.getElementById('teamBalancerResults').innerHTML = 
-      '<div class="empty-state">Select players and click "Generate Teams" to balance teams</div>';
+    restoreGeneratedTeams(); // Restore teams if they exist
+    if(!lastGeneratedTeams || !lastGeneratedTeams.html){
+      document.getElementById('teamBalancerResults').innerHTML = 
+        '<div class="empty-state">Select players and click "Generate Teams" to balance teams</div>';
+    }
   }
 }
 
-/* Initial paint */
-renderLeaderboard();
-renderActiveStreaks();
-renderHotStreak();
-renderMilestones();
-renderBiggestClimber();
-renderSeasonStats();
-populatePracticeSelector();
+// Restore the selected tab on page load
+function restoreSelectedTab(){
+  try {
+    const savedTab = localStorage.getItem('selectedTab');
+    if(savedTab && (savedTab === 'total' || savedTab === 'weekly' || savedTab === 'teams')){
+      showView(savedTab, true);
+      return;
+    }
+  } catch(e) {
+    console.warn('Failed to restore selected tab:', e);
+  }
+  // Default to 'total' if no saved tab or error
+  showView('total', true);
+}
+
+/* Initial paint - restore selected tab */
+restoreSelectedTab();
 </script>
 </body>
 </html>
