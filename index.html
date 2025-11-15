@@ -474,6 +474,25 @@ td{padding:16px; font-size:14px; font-weight:500;}
   font-weight:500;
   font-size:14px;
 }
+.spinner-container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:40px 20px;
+  gap:16px;
+}
+.spinner{
+  width:40px;
+  height:40px;
+  border:3px solid var(--border);
+  border-top-color:var(--green);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{
+  to{transform:rotate(360deg);}
+}
 .player-name{font-weight:600; letter-spacing:-.01em;}
 
 /* Scrollable lists used in compact stat cards */
@@ -1634,6 +1653,162 @@ function softminPick(scored, temp01, rng){
   return scored[scored.length-1];
 }
 
+// Optimal team balancing using branch-and-bound
+function solveOptimal(pdata, numTeams, base, r){
+  const N = pdata.length;
+  const startTime = Date.now();
+  const timeout = 10000; // 10 second timeout
+  
+  let bestSolution = null;
+  let bestVariance = Infinity;
+  let nodesExplored = 0;
+  
+  // Team size distribution: r teams get base+1, rest get base
+  const teamSizes = Array(numTeams).fill(base);
+  for(let i = 0; i < r; i++) teamSizes[i] = base + 1;
+  
+  // Calculate team averages helper
+  const getTeamAverages = (assignment) => {
+    const teams = Array.from({length: numTeams}, () => ({ sumTotal: 0, count: 0 }));
+    for(let i = 0; i < N; i++){
+      const teamIdx = assignment[i];
+      teams[teamIdx].sumTotal += pdata[i].total;
+      teams[teamIdx].count++;
+    }
+    return teams.map(t => t.count > 0 ? t.sumTotal / t.count : 0);
+  };
+  
+  // Check constraint: teams with more players should not have higher averages
+  const satisfiesConstraint = (assignment) => {
+    const teams = Array.from({length: numTeams}, () => ({ sumTotal: 0, count: 0 }));
+    for(let i = 0; i < assignment.length; i++){
+      if(assignment[i] === -1) break; // Incomplete assignment
+      const teamIdx = assignment[i];
+      teams[teamIdx].sumTotal += pdata[i].total;
+      teams[teamIdx].count++;
+    }
+    const avgs = teams.map(t => t.count > 0 ? t.sumTotal / t.count : 0);
+    const largeTeamAvgs = [];
+    const smallTeamAvgs = [];
+    for(let i = 0; i < numTeams; i++){
+      if(teamSizes[i] === base + 1) largeTeamAvgs.push(avgs[i]);
+      else smallTeamAvgs.push(avgs[i]);
+    }
+    if(largeTeamAvgs.length === 0 || smallTeamAvgs.length === 0) return true;
+    const maxLarge = Math.max(...largeTeamAvgs);
+    const minSmall = Math.min(...smallTeamAvgs);
+    return maxLarge <= minSmall;
+  };
+  
+  // Calculate variance of team averages
+  const calculateVariance = (avgs) => {
+    const mean = avgs.reduce((a,b) => a+b, 0) / avgs.length;
+    const variance = avgs.reduce((sum, a) => sum + Math.pow(a - mean, 2), 0) / avgs.length;
+    return variance;
+  };
+  
+  // Branch and bound recursive search
+  const search = (assignment, playerIdx, teamCounts) => {
+    nodesExplored++;
+    
+    // Timeout check
+    if(Date.now() - startTime > timeout) return false;
+    
+    // Base case: all players assigned
+    if(playerIdx === N){
+      if(!satisfiesConstraint(assignment)) return false;
+      const avgs = getTeamAverages(assignment);
+      const variance = calculateVariance(avgs);
+      if(variance < bestVariance){
+        bestVariance = variance;
+        bestSolution = assignment.slice(); // Copy assignment
+      }
+      return true;
+    }
+    
+    // Pruning: early constraint check and variance bound
+    if(playerIdx > 0){
+      // Check if constraint is already violated (can't be fixed)
+      const teams = Array.from({length: numTeams}, () => ({ sumTotal: 0, count: 0 }));
+      for(let i = 0; i < playerIdx; i++){
+        teams[assignment[i]].sumTotal += pdata[i].total;
+        teams[assignment[i]].count++;
+      }
+      // If any large team already has higher avg than any small team, prune
+      for(let i = 0; i < numTeams; i++){
+        for(let j = 0; j < numTeams; j++){
+          if(teamSizes[i] === base + 1 && teamSizes[j] === base){
+            const avgI = teams[i].count > 0 ? teams[i].sumTotal / teams[i].count : 0;
+            const avgJ = teams[j].count > 0 ? teams[j].sumTotal / teams[j].count : 0;
+            if(avgI > avgJ && teams[i].count === teamSizes[i] && teams[j].count === teamSizes[j]){
+              return false; // Constraint violated, prune
+            }
+          }
+        }
+      }
+    }
+    
+    // Try assigning current player to each team that has space
+    const player = pdata[playerIdx];
+    let found = false;
+    
+    // Try teams in order of current total (heuristic: assign to lighter teams first)
+    const teamOptions = [];
+    for(let i = 0; i < numTeams; i++){
+      if(teamCounts[i] < teamSizes[i]){
+        const currentTotal = assignment.slice(0, playerIdx)
+          .reduce((sum, team, idx) => sum + (team === i ? pdata[idx].total : 0), 0);
+        teamOptions.push({ team: i, total: currentTotal });
+      }
+    }
+    teamOptions.sort((a, b) => a.total - b.total); // Lightest first
+    
+    for(const { team } of teamOptions){
+      assignment[playerIdx] = team;
+      teamCounts[team]++;
+      
+      // Recursive call
+      if(search(assignment, playerIdx + 1, teamCounts)){
+        found = true;
+      }
+      
+      // Backtrack
+      teamCounts[team]--;
+    }
+    
+    return found;
+  };
+  
+  // Initialize search
+  const assignment = Array(N).fill(-1);
+  const teamCounts = Array(numTeams).fill(0);
+  search(assignment, 0, teamCounts);
+  
+  if(!bestSolution) return null;
+  
+  // Build result teams from optimal assignment
+  const resultTeams = Array.from({length: numTeams}, () => ({
+    players: [],
+    sumGoals: 0,
+    sumAssists: 0,
+    sumCleanSheets: 0,
+    sumTotal: 0
+  }));
+  
+  for(let i = 0; i < N; i++){
+    const teamIdx = bestSolution[i];
+    const p = pdata[i];
+    resultTeams[teamIdx].players.push(p);
+    resultTeams[teamIdx].sumGoals += p.goals;
+    resultTeams[teamIdx].sumAssists += p.assists;
+    resultTeams[teamIdx].sumCleanSheets += p.cleanSheets;
+    resultTeams[teamIdx].sumTotal += p.total;
+  }
+  
+  console.log(`Optimal solution found (variance: ${bestVariance.toFixed(4)}, nodes: ${nodesExplored})`);
+  return resultTeams;
+}
+
 function balanceTeams(players, numTeams, randomness=0, seed=null){
   const rng = seed==null ? Math.random : mulberry32(seed);
 
@@ -1657,41 +1832,123 @@ function balanceTeams(players, numTeams, randomness=0, seed=null){
   const avg  = t => t.players.length ? t.sumTotal / t.players.length : 0;
   const range = arr => Math.max(...arr) - Math.min(...arr);
 
-  // -------- Phase 1: fill equal base rosters using LPT (smallest sumTotal)
-  const extras = [];
-  for(const p of pdata){
-    const elig = [];
-    for(let i=0;i<teams.length;i++) if(teams[i].players.length < base) elig.push(i);
-    if(!elig.length){ extras.push(p); continue; }
-
-    // Score by sumTotal (LPT: assign to lightest team)
-    // Lower sumTotal = better (lighter team)
-    const scored = elig.map(i=>{
-      return { i, score: teams[i].sumTotal };
-    }).sort((a,b)=> a.score - b.score);
-
-    const pick = randomness !== 0 ? softminPick(scored, randomness, rng) : scored[0];
-    const t = teams[pick.i];
-    t.players.push(p);
-    t.sumGoals+=p.goals; t.sumAssists+=p.assists; t.sumCleanSheets+=p.cleanSheets; t.sumTotal+=p.total;
-  }
-
-  // -------- Phase 2: handle extras
-  extras.sort((a,b)=> a.total - b.total); // weakest first
-
   if(randomness === 'random'){
-    // Completely random: just assign extras to random teams
-    for(const u of extras.slice(0, r)){
-      // Pick a random team that's still at base size
-      const eligible = [];
-      for(let i=0;i<teams.length;i++) if(teams[i].players.length===base) eligible.push(i);
-      if(eligible.length === 0) break; // safety
-      const randomTeam = eligible[Math.floor(rng() * eligible.length)];
-      const t = teams[randomTeam];
-      t.players.push(u);
-      t.sumGoals+=u.goals; t.sumAssists+=u.assists; t.sumCleanSheets+=u.cleanSheets; t.sumTotal+=u.total;
+    // Completely random assignment: skip two-phase approach
+    // Shuffle players randomly
+    const shuffled = [...pdata];
+    for(let i = shuffled.length - 1; i > 0; i--){
+      const j = Math.floor(rng() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Create team size distribution: r teams get base+1, rest get base
+    const teamSizes = Array(numTeams).fill(base);
+    for(let i = 0; i < r; i++) teamSizes[i] = base + 1;
+    
+    // Shuffle team sizes randomly so which teams get extra players is random
+    for(let i = teamSizes.length - 1; i > 0; i--){
+      const j = Math.floor(rng() * (i + 1));
+      [teamSizes[i], teamSizes[j]] = [teamSizes[j], teamSizes[i]];
+    }
+    
+    // Assign shuffled players to teams according to sizes
+    let playerIdx = 0;
+    for(let teamIdx = 0; teamIdx < numTeams; teamIdx++){
+      const t = teams[teamIdx];
+      for(let i = 0; i < teamSizes[teamIdx]; i++){
+        const p = shuffled[playerIdx++];
+        t.players.push(p);
+        t.sumGoals += p.goals;
+        t.sumAssists += p.assists;
+        t.sumCleanSheets += p.cleanSheets;
+        t.sumTotal += p.total;
+      }
+    }
+  } else if(randomness === 0 && N <= 24){
+    // Optimal solution using branch-and-bound (only for small cases)
+    const optimalTeams = solveOptimal(pdata, numTeams, base, r);
+    if(optimalTeams){
+      // Copy optimal solution
+      for(let i=0; i<numTeams; i++){
+        teams[i] = optimalTeams[i];
+      }
+    } else {
+      // Fallback to heuristic if optimal failed - use standard LPT + swap
+      const extras = [];
+      for(const p of pdata){
+        const elig = [];
+        for(let i=0;i<teams.length;i++) if(teams[i].players.length < base) elig.push(i);
+        if(!elig.length){ extras.push(p); continue; }
+        const scored = elig.map(i=> ({ i, score: teams[i].sumTotal })).sort((a,b)=> a.score - b.score);
+        const t = teams[scored[0].i];
+        t.players.push(p);
+        t.sumGoals+=p.goals; t.sumAssists+=p.assists; t.sumCleanSheets+=p.cleanSheets; t.sumTotal+=p.total;
+      }
+      extras.sort((a,b)=> a.total - b.total);
+      
+      // Phase 2: Swap-based assignment
+      for(const u of extras.slice(0, r)){
+        const Sopts = teams.map((t,i)=>({ i, score: -avg(t) })).sort((a,b)=> a.score - b.score);
+        const S = Sopts[0].i;
+        const Wpool = [];
+        for(let i=0;i<teams.length;i++) if(teams[i].players.length===base)
+          Wpool.push({ i, score: avg(teams[i]) });
+        Wpool.sort((a,b)=> a.score - b.score);
+        const W = Wpool[0].i;
+        
+        const tS = teams[S], tW = teams[W];
+        tS.players.push(u);
+        tS.sumGoals+=u.goals; tS.sumAssists+=u.assists; tS.sumCleanSheets+=u.cleanSheets; tS.sumTotal+=u.total;
+        
+        const candidates = tS.players.filter(x=>x.name!==u.name).map(p=>{
+          const SsumAfter = tS.sumTotal - p.total;
+          const WsumAfter = tW.sumTotal + p.total;
+          const SavgAfter = SsumAfter / base;
+          const WavgAfter = WsumAfter / (base+1);
+          const avgs = teams.map((t,idx)=>{
+            if(idx===S) return SavgAfter;
+            if(idx===W) return WavgAfter;
+            return avg(t);
+          });
+          const valid = WavgAfter <= SavgAfter;
+          return { p, score: valid ? range(avgs) : Infinity, valid };
+        }).filter(c => c.valid).sort((a,b)=> a.score - b.score);
+        
+        if(candidates.length === 0){
+          const weakest = tS.players.filter(x=>x.name!==u.name).sort((a,b)=> a.total - b.total)[0];
+          candidates.push({ p: weakest, score: 0, valid: true });
+        }
+        
+        const p = candidates[0].p;
+        const rm = tS.players.findIndex(x=>x.name===p.name);
+        tS.players.splice(rm,1);
+        tS.sumGoals-=p.goals; tS.sumAssists-=p.assists; tS.sumCleanSheets-=p.cleanSheets; tS.sumTotal-=p.total;
+        tW.players.push(p);
+        tW.sumGoals+=p.goals; tW.sumAssists+=p.assists; tW.sumCleanSheets+=p.cleanSheets; tW.sumTotal+=p.total;
+      }
     }
   } else {
+    // -------- Phase 1: fill equal base rosters using LPT (smallest sumTotal)
+    const extras = [];
+    for(const p of pdata){
+      const elig = [];
+      for(let i=0;i<teams.length;i++) if(teams[i].players.length < base) elig.push(i);
+      if(!elig.length){ extras.push(p); continue; }
+
+      // Score by sumTotal (LPT: assign to lightest team)
+      // Lower sumTotal = better (lighter team)
+      const scored = elig.map(i=>{
+        return { i, score: teams[i].sumTotal };
+      }).sort((a,b)=> a.score - b.score);
+
+      const pick = randomness !== 0 ? softminPick(scored, randomness, rng) : scored[0];
+      const t = teams[pick.i];
+      t.players.push(p);
+      t.sumGoals+=p.goals; t.sumAssists+=p.assists; t.sumCleanSheets+=p.cleanSheets; t.sumTotal+=p.total;
+    }
+
+    // -------- Phase 2: handle extras
+    extras.sort((a,b)=> a.total - b.total); // weakest first
     // Swap-based assignment for balanced teams
     for(const u of extras.slice(0, r)){
       // Pick S ≈ strongest team (higher avg is "stronger").
@@ -1714,6 +1971,7 @@ function balanceTeams(players, numTeams, randomness=0, seed=null){
 
       // Choose p ∈ S\{u} to move to W, minimizing resulting range of team averages
       // Constraint: teams with more players (base+1) should not have higher averages
+      // But allow violations with penalty to enable more randomness
       const candidates = tS.players.filter(x=>x.name!==u.name).map(p=>{
         const SsumAfter = tS.sumTotal - p.total;                   // S returns to base size
         const WsumAfter = tW.sumTotal + p.total;                   // W becomes base+1
@@ -1724,20 +1982,28 @@ function balanceTeams(players, numTeams, randomness=0, seed=null){
           if(idx===W) return WavgAfter;
           return avg(t);
         });
+        const baseScore = range(avgs);
         // Constraint: W (base+1) should not have higher average than S (base)
-        const valid = WavgAfter <= SavgAfter;
-        return { p, score: valid ? range(avgs) : Infinity, valid };
-      }).filter(c => c.valid).sort((a,b)=> a.score - b.score);
+        // Add penalty for violations, but don't filter them out
+        const constraintViolation = Math.max(0, WavgAfter - SavgAfter);
+        const penalty = constraintViolation * 2; // Smaller penalty allows more violations
+        return { p, score: baseScore + penalty, valid: constraintViolation === 0 };
+      }).sort((a,b)=> a.score - b.score);
 
+      // For deterministic (randomness=0), only consider valid candidates
+      const candidatesToUse = randomness === 0 
+        ? candidates.filter(c => c.valid)
+        : candidates;
+      
       // Fallback if no valid candidates (shouldn't happen, but safety)
-      if(candidates.length === 0){
+      if(candidatesToUse.length === 0){
         // Just pick the weakest player from S
         const weakest = tS.players.filter(x=>x.name!==u.name)
           .sort((a,b)=> a.total - b.total)[0];
-        candidates.push({ p: weakest, score: 0, valid: true });
+        candidatesToUse.push({ p: weakest, score: 0, valid: true });
       }
 
-      const chosen = randomness !== 0 ? softminPick(candidates, randomness, rng) : candidates[0];
+      const chosen = randomness !== 0 ? softminPick(candidatesToUse, randomness, rng) : candidatesToUse[0];
       const p = chosen.p;
 
       // Commit: move p to W (u stays on S)
@@ -1791,7 +2057,33 @@ function updateTeamBalancer(){
   const seedVal = document.getElementById('softSeed')?.value;
   const seed    = seedVal === '' ? null : Number(seedVal);
   
+  // Show spinner for optimal solver (None randomness, ≤24 players)
+  const showSpinner = temp01 === 0 && players.length <= 24;
+  if(showSpinner){
+    const resultsEl = document.getElementById('teamBalancerResults');
+    resultsEl.innerHTML = 
+      '<div class="spinner-container"><div class="spinner"></div><div style="color:var(--muted);font-size:14px;">Finding optimal teams...</div></div>';
+    
+    // Force immediate repaint
+    void resultsEl.offsetHeight;
+    
+    // Use requestAnimationFrame to ensure spinner renders before blocking computation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const teams = balanceTeams(players, numTeams, temp01, seed);
+          renderTeams(teams, numTeams);
+        }, 100);
+      });
+    });
+    return;
+  }
+  
   const teams = balanceTeams(players, numTeams, temp01, seed);
+  renderTeams(teams, numTeams);
+}
+
+function renderTeams(teams, numTeams){
   
   const teamNames = ['Blue', 'Yellow', 'Red', 'Black'];
   const html = teams.map((team, idx) => {
@@ -1825,7 +2117,9 @@ function updateTeamBalancer(){
   document.getElementById('teamBalancerResults').innerHTML = html;
   
   // Save generated teams and state
-  lastGeneratedTeams = { teams, html, numTeams, randomness: temp01, seed };
+  const tempVal = document.getElementById('softTemp')?.value;
+  const temp01  = tempVal === 'random' ? 'random' : (parseFloat(tempVal) || 0);
+  lastGeneratedTeams = { teams, html, numTeams, randomness: temp01, seed: document.getElementById('softSeed')?.value || '' };
   saveTeamBalancerState();
 }
 
