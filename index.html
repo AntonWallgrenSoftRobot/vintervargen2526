@@ -1814,13 +1814,34 @@ function balanceTeams(players, numTeams, randomness=0, seed=null){
 
   // Build player strengths from season averages
   const stats = calculateTotalStats();
+  
+  // Calculate league averages for new players (only from existing players with attendance > 0)
+  const existingPlayers = Object.entries(stats).filter(([name, s]) => s.attendance > 0);
+  let avgGoals = 0, avgAssists = 0, avgCleanSheets = 0;
+  if(existingPlayers.length > 0){
+    const totalGoals = existingPlayers.reduce((sum, [name, s]) => sum + (s.goals || 0), 0);
+    const totalAssists = existingPlayers.reduce((sum, [name, s]) => sum + (s.assists || 0), 0);
+    const totalCleanSheets = existingPlayers.reduce((sum, [name, s]) => sum + (s.cleanSheets || 0), 0);
+    const totalAttendance = existingPlayers.reduce((sum, [name, s]) => sum + (s.attendance || 0), 0);
+    
+    if(totalAttendance > 0){
+      avgGoals = totalGoals / totalAttendance;
+      avgAssists = totalAssists / totalAttendance;
+      avgCleanSheets = totalCleanSheets / totalAttendance;
+    }
+  }
+  
   const pdata = players.map(name=>{
     const s = stats[name] || {goals:0,assists:0,cleanSheets:0,attendance:0};
     const A = s.attendance||0;
-    const g = A ? (s.goals||0)/A : 0;
-    const a = A ? (s.assists||0)/A : 0;
-    const c = A ? (s.cleanSheets||0)/A : 0;
-    return { name, goals:g, assists:a, cleanSheets:c, total:g+a+c, attendance:A };
+    const isNew = newPlayers.has(name) || !stats[name];
+    
+    // Use league averages for new players, otherwise use their actual averages
+    const g = isNew ? avgGoals : (A ? (s.goals||0)/A : 0);
+    const a = isNew ? avgAssists : (A ? (s.assists||0)/A : 0);
+    const c = isNew ? avgCleanSheets : (A ? (s.cleanSheets||0)/A : 0);
+    
+    return { name, goals:g, assists:a, cleanSheets:c, total:g+a+c, attendance:A, isNew };
   }).sort((x,y)=> y.total - x.total); // strong → weak
 
   const N = pdata.length, base = Math.floor(N/numTeams), r = N % numTeams;
@@ -2102,10 +2123,10 @@ function renderTeams(teams, numTeams){
         <div class="team-players">
           ${team.players.map(p => `
             <div class="team-player-card">
-              <div class="team-player-card-name">${p.name}</div>
+              <div class="team-player-card-name">${p.isNew ? '🆕 ' : ''}${p.name}</div>
               <div class="team-player-card-stats">
                 ⚽${p.goals.toFixed(2)} 🎯${p.assists.toFixed(2)} 🛡️${p.cleanSheets.toFixed(2)}
-                ${p.attendance > 0 ? `<br><span style="font-size:10px;color:var(--muted-2);">(${p.attendance} practices)</span>` : ''}
+                ${p.isNew ? '<br><span style="font-size:10px;color:var(--green);">(league average)</span>' : (p.attendance > 0 ? `<br><span style="font-size:10px;color:var(--muted-2);">(${p.attendance} practices)</span>` : '')}
               </div>
             </div>
           `).join('')}
