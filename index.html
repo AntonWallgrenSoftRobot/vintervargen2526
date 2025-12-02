@@ -804,6 +804,16 @@ input[type="range"]::-moz-range-track{
           <div id="teamScoreboard"></div>
         </div>
 
+        <div class="panel leaderboard" id="matchTimelinePanel" style="display:none; margin-bottom:18px;">
+          <div class="section-title">⚽ Match Results Timeline</div>
+          <div id="matchTimeline"></div>
+        </div>
+
+        <div class="panel leaderboard" id="headToHeadPanel" style="display:none; margin-bottom:18px;">
+          <div class="section-title">🆚 Head-to-Head Statistics</div>
+          <div id="headToHead"></div>
+        </div>
+
         <div class="grid">
           <div class="panel leaderboard">
             <div class="section-title">📋 Week Stats</div>
@@ -1646,6 +1656,204 @@ function renderTeamScoreboard(practice){
   `;
 }
 
+/* ------- Match Results Timeline ------- */
+function renderMatchTimeline(practice){
+  if(!practice.matches || practice.matches.length === 0){
+    document.getElementById('matchTimelinePanel').style.display = 'none';
+    return;
+  }
+  
+  const panel = document.getElementById('matchTimelinePanel');
+  const container = document.getElementById('matchTimeline');
+  
+  panel.style.display = 'block';
+  
+  // Sort matches by matchNumber
+  const sortedMatches = [...practice.matches].sort((a, b) => a.matchNumber - b.matchNumber);
+  
+  container.innerHTML = `
+    <div class="scroll-table" style="max-height: 400px;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 50px;">#</th>
+            <th>Home</th>
+            <th style="width: 80px;">Score</th>
+            <th>Away</th>
+            <th style="width: 80px;">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sortedMatches.map(match => {
+            const homeColor = getTeamColor(match.homeTeam);
+            const awayColor = getTeamColor(match.awayTeam);
+            const homeWon = match.homeScore > match.awayScore;
+            const awayWon = match.awayScore > match.homeScore;
+            const isDraw = match.homeScore === match.awayScore;
+            
+            return `
+            <tr>
+              <td style="text-align:center;">
+                <span style="
+                  display:inline-block;
+                  padding:4px 8px;
+                  border-radius:6px;
+                  background:rgba(255,255,255,.08);
+                  border:1px solid var(--border);
+                  font-weight:700;
+                  font-size:11px;
+                  color:var(--muted);
+                ">${match.matchNumber}</span>
+              </td>
+              <td>
+                <span style="font-weight:${homeWon ? '800' : '600'}; color:${homeWon ? 'var(--green)' : 'var(--white)'};">
+                  ${match.homeTeam}
+                </span>
+              </td>
+              <td style="text-align:center; font-weight:800; font-size:15px;">
+                ${match.homeScore} - ${match.awayScore}
+              </td>
+              <td>
+                <span style="font-weight:${awayWon ? '800' : '600'}; color:${awayWon ? 'var(--green)' : 'var(--white)'};">
+                  ${match.awayTeam}
+                </span>
+              </td>
+              <td style="text-align:center;">
+                ${isDraw ? 
+                  '<span style="padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; background:rgba(255,255,255,.1); border:1px solid var(--border); color:var(--muted);">Draw</span>' :
+                  `<span style="padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; background:${homeWon ? homeColor.bg : awayColor.bg}; border:1px solid ${homeWon ? homeColor.border : awayColor.border}; color:var(--white);">${homeWon ? match.homeTeam : match.awayTeam}</span>`
+                }
+              </td>
+            </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+/* ------- Head-to-Head Statistics ------- */
+function calculateHeadToHead(practice){
+  if(!practice.matches || practice.matches.length === 0){
+    return null;
+  }
+  
+  const h2h = {};
+  
+  practice.matches.forEach(match => {
+    const homeTeam = match.homeTeam;
+    const awayTeam = match.awayTeam;
+    
+    // Create consistent key (alphabetically sorted team names)
+    const sortedTeams = [homeTeam, awayTeam].sort();
+    const key = sortedTeams.join(' vs ');
+    
+    if(!h2h[key]){
+      h2h[key] = {
+        team1: sortedTeams[0],  // Alphabetically first
+        team2: sortedTeams[1],  // Alphabetically second
+        team1Wins: 0,
+        team2Wins: 0,
+        draws: 0,
+        team1Goals: 0,
+        team2Goals: 0
+      };
+    }
+    
+    const stats = h2h[key];
+    
+    // Determine which team is team1 (alphabetically first) in this matchup
+    const isHomeTeamFirst = homeTeam < awayTeam;
+    const team1Score = isHomeTeamFirst ? match.homeScore : match.awayScore;
+    const team2Score = isHomeTeamFirst ? match.awayScore : match.homeScore;
+    
+    if(team1Score > team2Score){
+      stats.team1Wins++;
+    } else if(team2Score > team1Score){
+      stats.team2Wins++;
+    } else {
+      stats.draws++;
+    }
+    
+    stats.team1Goals += team1Score;
+    stats.team2Goals += team2Score;
+  });
+  
+  return Object.values(h2h);
+}
+
+function renderHeadToHead(practice){
+  const h2hStats = calculateHeadToHead(practice);
+  const panel = document.getElementById('headToHeadPanel');
+  const container = document.getElementById('headToHead');
+  
+  if(!h2hStats || h2hStats.length === 0){
+    panel.style.display = 'none';
+    return;
+  }
+  
+  panel.style.display = 'block';
+  
+  // Sort by total matches (most played first)
+  h2hStats.sort((a, b) => {
+    const totalA = a.team1Wins + a.team2Wins + a.draws;
+    const totalB = b.team1Wins + b.team2Wins + b.draws;
+    return totalB - totalA;
+  });
+  
+  container.innerHTML = `
+    <div class="scroll-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Teams</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Record</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${h2hStats.map(stat => {
+            const team1Color = getTeamColor(stat.team1);
+            const team2Color = getTeamColor(stat.team2);
+            const totalMatches = stat.team1Wins + stat.team2Wins + stat.draws;
+            
+            return `
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${team1Color.badge};border:1px solid ${team1Color.border};"></span>
+                  <span style="font-weight:700;">${stat.team1}</span>
+                  <span style="color:var(--muted-2);">vs</span>
+                  <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${team2Color.badge};border:1px solid ${team2Color.border};"></span>
+                  <span style="font-weight:700;">${stat.team2}</span>
+                </div>
+              </td>
+              <td style="color:var(--green); font-weight:700;">${stat.team1Wins}</td>
+              <td style="color:var(--muted); font-weight:600;">${stat.draws}</td>
+              <td style="color:var(--red); font-weight:700;">${stat.team2Wins}</td>
+              <td style="font-weight:600;">${stat.team1Goals}</td>
+              <td style="font-weight:600;">${stat.team2Goals}</td>
+              <td style="font-weight:700; font-size:13px;">
+                <div>
+                  <span style="color:var(--green);">${stat.team1Wins}</span>-
+                  <span style="color:var(--muted);">${stat.draws}</span>-
+                  <span style="color:var(--red);">${stat.team2Wins}</span>
+                  <div style="color:var(--muted-2); font-size:11px; margin-top:4px; font-weight:500;">
+                    ${stat.team1} ${stat.team1Wins}-${stat.draws}-${stat.team2Wins} ${stat.team2}
+                  </div>
+                  <div style="color:var(--muted-2); font-size:10px; margin-top:2px;">
+                    (${totalMatches} matches)
+                  </div>
+                </div>
+              </td>
+            </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 function updatePracticeView(){
   currentPractice=parseInt(document.getElementById('weekSelect').value);
   const practice=practices[currentPractice];
@@ -1710,6 +1918,8 @@ function updatePracticeView(){
   
   // Render team scoreboard if matches/teams data is available
   renderTeamScoreboard(practice);
+  renderMatchTimeline(practice);
+  renderHeadToHead(practice);
 }
 /* ------- Team Balancer ------- */
 let selectedPlayers = new Set();
