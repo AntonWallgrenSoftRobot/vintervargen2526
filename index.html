@@ -799,6 +799,11 @@ input[type="range"]::-moz-range-track{
           </div>
         </div>
 
+        <div class="panel leaderboard" id="teamScoreboardPanel" style="display:none; margin-bottom:18px;">
+          <div class="section-title">🏆 Team Scoreboard</div>
+          <div id="teamScoreboard"></div>
+        </div>
+
         <div class="grid">
           <div class="panel leaderboard">
             <div class="section-title">📋 Week Stats</div>
@@ -920,10 +925,11 @@ const weeklyData = [
   {"week":45,"date":"2025-11-06","stats":[{"name":"Martin J","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Love B","attendance":1,"goals":2,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":6,"assists":0,"cleanSheet":4,"turbotorped":1},{"name":"Anton","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Malte","attendance":1,"goals":7,"assists":5,"cleanSheet":11,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":0,"assists":4,"cleanSheet":4,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":3,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Degen","attendance":1,"goals":1,"assists":3,"cleanSheet":11,"turbotorped":0},{"name":"Marco","attendance":1,"goals":2,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":5,"assists":0,"cleanSheet":11,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":1,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Olle","attendance":1,"goals":3,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":2,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Gio","attendance":1,"goals":0,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":2,"assists":4,"cleanSheet":11,"turbotorped":0},{"name":"Esmet","attendance":1,"goals":0,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":0,"assists":3,"cleanSheet":5,"turbotorped":0},{"name":"Ante","attendance":1,"goals":9,"assists":8,"cleanSheet":11,"turbotorped":0}]},
   {"week":46,"date":"2025-11-11","stats":[{"name":"Arvid","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Marco","attendance":1,"goals":1,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Milton","attendance":1,"goals":1,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":2,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Chris","attendance":1,"goals":0,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":6,"assists":5,"cleanSheet":9,"turbotorped":0},{"name":"Malte","attendance":1,"goals":7,"assists":4,"cleanSheet":9,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Emil N","attendance":1,"goals":0,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Andres","attendance":1,"goals":1,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":3,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Olle","attendance":1,"goals":1,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":2,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Love B","attendance":1,"goals":3,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Degen","attendance":1,"goals":1,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":3,"assists":1,"cleanSheet":9,"turbotorped":1},{"name":"Martin J","attendance":1,"goals":2,"assists":1,"cleanSheet":9,"turbotorped":0}]},
   {"week":46,"date":"2025-11-13","stats":[{"name":"Arvid","attendance":1,"goals":1,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Ante","attendance":1,"goals":6,"assists":8,"cleanSheet":9,"turbotorped":0},{"name":"Kim","attendance":1,"goals":2,"assists":5,"cleanSheet":7,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":5,"assists":2,"cleanSheet":7,"turbotorped":0},{"name":"Love B","attendance":1,"goals":1,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Adde","attendance":1,"goals":1,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Marco","attendance":1,"goals":4,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Degen","attendance":1,"goals":2,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":1,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":1,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Martin J","attendance":1,"goals":5,"assists":5,"cleanSheet":7,"turbotorped":1},{"name":"Johnson","attendance":1,"goals":4,"assists":3,"cleanSheet":9,"turbotorped":0},{"name":"Chris","attendance":1,"goals":1,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Malte","attendance":1,"goals":6,"assists":4,"cleanSheet":9,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":4,"assists":2,"cleanSheet":7,"turbotorped":0}]},
-  {"week":47,"date":"2025-11-18","stats":[{"name":"Ante","attendance":1,"goals":5,"assists":5,"cleanSheet":9,"turbotorped":0},{"name":"Olle","attendance":1,"goals":4,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Kim","attendance":1,"goals":3,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Love B","attendance":1,"goals":1,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":1,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Anton","attendance":1,"goals":3,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Payam","attendance":1,"goals":4,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":1,"assists":4,"cleanSheet":5,"turbotorped":0},{"name":"Martin J","attendance":1,"goals":2,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Emil N","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Pooria","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Adde","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":1},{"name":"Malte","attendance":1,"goals":3,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":4,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Alexander D","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":6,"turbotorped":0}]},
+  {"week":47,"date":"2025-11-18","stats":[{"name":"Ante","attendance":1,"goals":5,"assists":5,"cleanSheet":9,"turbotorped":0},{"name":"Olle","attendance":1,"goals":4,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Kim","attendance":1,"goals":3,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Love B","attendance":1,"goals":1,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":1,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Anton","attendance":1,"goals":3,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Payam","attendance":1,"goals":4,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":1,"assists":4,"cleanSheet":5,"turbotorped":0},{"name":"Martin J","attendance":1,"goals":2,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Emil N","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Pooria","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Adde","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":1},{"name":"Malte","attendance":1,"goals":3,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":4,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Alex D","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":6,"turbotorped":0}]},
   {"week":47,"date":"2025-11-20","stats":[{"name":"Malte","attendance":1,"goals":4,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Martin J","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Payam","attendance":1,"goals":8,"assists":6,"cleanSheet":12,"turbotorped":0},{"name":"Love B","attendance":1,"goals":5,"assists":2,"cleanSheet":12,"turbotorped":1},{"name":"Emil V","attendance":1,"goals":1,"assists":1,"cleanSheet":12,"turbotorped":0},{"name":"Anton","attendance":1,"goals":2,"assists":0,"cleanSheet":12,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":0,"cleanSheet":12,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":2,"assists":5,"cleanSheet":7,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":3,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Marco","attendance":1,"goals":2,"assists":2,"cleanSheet":7,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":2,"assists":2,"cleanSheet":7,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0}]},
-  {"week":48,"date":"2025-11-25","stats":[{"name":"Ante","attendance":1,"goals":3,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":2,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Emil N","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Payam","attendance":1,"goals":2,"assists":4,"cleanSheet":7,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":2,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Goran","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":3,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":2,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Alexander D","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Malte","attendance":1,"goals":6,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Olle","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Marco","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":2,"cleanSheet":6,"turbotorped":1},{"name":"Erik Ö","attendance":1,"goals":4,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":3,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Love B","attendance":1,"goals":0,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Martin J","attendance":1,"goals":0,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Degen","attendance":1,"goals":1,"assists":1,"cleanSheet":4,"turbotorped":0}]},
-  {"week":48,"date":"2025-11-27","stats":[{"name":"Ante","attendance":1,"goals":6,"assists":5,"cleanSheet":6,"turbotorped":0},{"name":"Olle","attendance":1,"goals":4,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":1,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Degen","attendance":1,"goals":3,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Payam","attendance":1,"goals":3,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":1,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Riyan","attendance":1,"goals":2,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Milton","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":3,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":1,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":2,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Marco","attendance":1,"goals":4,"assists":3,"cleanSheet":11,"turbotorped":1},{"name":"Johnson","attendance":1,"goals":1,"assists":3,"cleanSheet":11,"turbotorped":0}]}
+  {"week":48,"date":"2025-11-25","stats":[{"name":"Ante","attendance":1,"goals":3,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":2,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Emil N","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Payam","attendance":1,"goals":2,"assists":4,"cleanSheet":7,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":2,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Goran","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":3,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":2,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Alex D","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Malte","attendance":1,"goals":6,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Olle","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Marco","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":2,"cleanSheet":6,"turbotorped":1},{"name":"Erik Ö","attendance":1,"goals":4,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":3,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Love B","attendance":1,"goals":0,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Martin J","attendance":1,"goals":0,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Degen","attendance":1,"goals":1,"assists":1,"cleanSheet":4,"turbotorped":0}]},
+  {"week":48,"date":"2025-11-27","stats":[{"name":"Ante","attendance":1,"goals":6,"assists":5,"cleanSheet":6,"turbotorped":0},{"name":"Olle","attendance":1,"goals":4,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":1,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Degen","attendance":1,"goals":3,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Payam","attendance":1,"goals":3,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":1,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Riyan","attendance":1,"goals":2,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Milton","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":3,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":1,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":2,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Marco","attendance":1,"goals":4,"assists":3,"cleanSheet":11,"turbotorped":1},{"name":"Johnson","attendance":1,"goals":1,"assists":3,"cleanSheet":11,"turbotorped":0}]},
+  {"week":49,"date":"2025-12-02","stats":[{"name":"Payam","attendance":1,"goals":2,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":0,"assists":4,"cleanSheet":0,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":2,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Degen","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Chris","attendance":1,"goals":5,"assists":1,"cleanSheet":0,"turbotorped":1},{"name":"Riyan","attendance":1,"goals":2,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":3,"cleanSheet":0,"turbotorped":0},{"name":"Malte","attendance":1,"goals":4,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Olle","attendance":1,"goals":4,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Marco","attendance":1,"goals":2,"assists":3,"cleanSheet":0,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Anton","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":3,"cleanSheet":0,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":0,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Love B","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":3,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Alex D","attendance":1,"goals":4,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":4,"cleanSheet":0,"turbotorped":0}],"teams":[{"name":"Blå","players":["Payam","Love Ö","Lasse","Arvid","Degen","Chris","Riyan"]},{"name":"Gul","players":["Kim","Malte","Olle","Marco","Andreas B","Anton","Saman"]},{"name":"Röd","players":["Erik Ö","Simon A","Love B","Abdul","Mathias","Alex D"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Gul","homeScore":3,"awayScore":0},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":3},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":1},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":2},{"matchNumber":11,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":14,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":2,"awayScore":2},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":2},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":23,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":2}]}
 ];
 /* ------- NEW: merge Tue/Thu entries per ISO date within a week ------- */
 function formatPracticeDate(iso){
@@ -937,11 +943,55 @@ function getPractices(){
     .map(entry => ({
       date: entry.date,
       label: formatPracticeDate(entry.date),
-      stats: entry.stats
+      stats: entry.stats,
+      teams: entry.teams,
+      matches: entry.matches
     }))
     .sort((a,b) => a.date.localeCompare(b.date));
 }
 const practices = getPractices();
+
+/* ------- Calculate clean sheets from matches/teams ------- */
+function calculateCleanSheetsFromMatches(practice){
+  if(!practice.teams || !practice.matches || practice.matches.length === 0){
+    return null; // No matches data, use original cleanSheet field
+  }
+  
+  // Build a map of player -> team name
+  const playerToTeam = {};
+  practice.teams.forEach(team => {
+    team.players.forEach(playerName => {
+      playerToTeam[playerName] = team.name;
+    });
+  });
+  
+  // Count clean sheets per player
+  const playerCleanSheets = {};
+  
+  practice.matches.forEach(match => {
+    // Check if home team kept a clean sheet (awayScore === 0)
+    if(match.awayScore === 0 && match.homeTeam){
+      const team = practice.teams.find(t => t.name === match.homeTeam);
+      if(team){
+        team.players.forEach(playerName => {
+          playerCleanSheets[playerName] = (playerCleanSheets[playerName] || 0) + 1;
+        });
+      }
+    }
+    
+    // Check if away team kept a clean sheet (homeScore === 0)
+    if(match.homeScore === 0 && match.awayTeam){
+      const team = practice.teams.find(t => t.name === match.awayTeam);
+      if(team){
+        team.players.forEach(playerName => {
+          playerCleanSheets[playerName] = (playerCleanSheets[playerName] || 0) + 1;
+        });
+      }
+    }
+  });
+  
+  return playerCleanSheets;
+}
 
 let currentView='total';
 let currentPractice=practices.length-1;
@@ -950,6 +1000,9 @@ let currentPractice=practices.length-1;
 function calculateTotalStats(){
   const playerStats={};
   practices.forEach(practice=>{
+    // Calculate clean sheets from matches if available
+    const calculatedCleanSheets = calculateCleanSheetsFromMatches(practice);
+    
     practice.stats.forEach(p=>{
       if(!playerStats[p.name]){
         playerStats[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0,practiceData:[]};
@@ -957,9 +1010,18 @@ function calculateTotalStats(){
       playerStats[p.name].attendance+=p.attendance;
       playerStats[p.name].goals+=p.goals;
       playerStats[p.name].assists+=p.assists;
-      playerStats[p.name].cleanSheets+=p.cleanSheet;
+      // Use calculated clean sheets if available, otherwise use original cleanSheet field
+      const cleanSheets = calculatedCleanSheets && calculatedCleanSheets[p.name] !== undefined
+        ? calculatedCleanSheets[p.name]
+        : p.cleanSheet;
+      playerStats[p.name].cleanSheets+=cleanSheets;
       playerStats[p.name].turbotorped+=p.turbotorped;
-      playerStats[p.name].practiceData.push({date:practice.date,...p});
+      // Store the calculated clean sheet value in practiceData
+      playerStats[p.name].practiceData.push({
+        date:practice.date,
+        ...p,
+        cleanSheet: cleanSheets
+      });
     });
   });
   return playerStats;
@@ -978,12 +1040,19 @@ function renderLeaderboard(){
   if(practices.length>1){
     const prev={};
     practices.slice(0,-1).forEach(practice=>{
+      // Calculate clean sheets from matches if available
+      const calculatedCleanSheets = calculateCleanSheetsFromMatches(practice);
+      
       practice.stats.forEach(p=>{
         if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
         prev[p.name].attendance+=p.attendance;
         prev[p.name].goals+=p.goals;
         prev[p.name].assists+=p.assists;
-        prev[p.name].cleanSheets+=p.cleanSheet;
+        // Use calculated clean sheets if available, otherwise use original cleanSheet field
+        const cleanSheets = calculatedCleanSheets && calculatedCleanSheets[p.name] !== undefined
+          ? calculatedCleanSheets[p.name]
+          : p.cleanSheet;
+        prev[p.name].cleanSheets+=cleanSheets;
         prev[p.name].turbotorped+=p.turbotorped;
       })
     });
@@ -1096,8 +1165,13 @@ function renderHotStreak(){
       const playerStats = practice.stats.find(p => p.name === name);
       if(playerStats && playerStats.attendance > 0) {
         practicesPlayed++;
+        // Calculate clean sheets from matches if available
+        const calculatedCleanSheets = calculateCleanSheetsFromMatches(practice);
+        const cleanSheets = calculatedCleanSheets && calculatedCleanSheets[name] !== undefined
+          ? calculatedCleanSheets[name]
+          : playerStats.cleanSheet;
         pts += playerStats.attendance + playerStats.goals + playerStats.assists +
-               playerStats.cleanSheet + (playerStats.turbotorped * 5);
+               cleanSheets + (playerStats.turbotorped * 5);
       }
     });
 
@@ -1165,10 +1239,20 @@ function renderBiggestClimber(){
   const ps=calculateTotalStats();
   if(practices.length<2){ document.getElementById('biggestClimber').innerHTML='<div class="empty-state">Need more practices</div>'; return;}
   const prev={};
-  practices.slice(0,-1).forEach(practice=>practice.stats.forEach(p=>{
-    if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
-    prev[p.name].attendance+=p.attendance; prev[p.name].goals+=p.goals; prev[p.name].assists+=p.assists; prev[p.name].cleanSheets+=p.cleanSheet; prev[p.name].turbotorped+=p.turbotorped;
-  }));
+  practices.slice(0,-1).forEach(practice=>{
+    // Calculate clean sheets from matches if available
+    const calculatedCleanSheets = calculateCleanSheetsFromMatches(practice);
+    
+    practice.stats.forEach(p=>{
+      if(!prev[p.name]) prev[p.name]={attendance:0,goals:0,assists:0,cleanSheets:0,turbotorped:0};
+      prev[p.name].attendance+=p.attendance; prev[p.name].goals+=p.goals; prev[p.name].assists+=p.assists;
+      // Use calculated clean sheets if available, otherwise use original cleanSheet field
+      const cleanSheets = calculatedCleanSheets && calculatedCleanSheets[p.name] !== undefined
+        ? calculatedCleanSheets[p.name]
+        : p.cleanSheet;
+      prev[p.name].cleanSheets+=cleanSheets; prev[p.name].turbotorped+=p.turbotorped;
+    });
+  });
   const prevL=Object.entries(prev).map(([name,s])=>({name,points:calculatePoints(s)})).sort((a,b)=>b.points-a.points);
   const prevRanks={}; prevL.forEach((p,i)=>prevRanks[p.name]=i+1);
   const currentL=Object.entries(ps).map(([name,s])=>({name,points:calculatePoints(s)})).sort((a,b)=>b.points-a.points);
@@ -1329,13 +1413,23 @@ function renderDeviationLeaderForPractice(practice){
 
 
 function pickPracticeTopTeam(practice){
+  // Calculate clean sheets from matches if available
+  const calculatedCleanSheets = calculateCleanSheetsFromMatches(practice);
+  
   const players = practice.stats
     .filter(p => p.attendance > 0)
-    .map(p => ({
-      ...p,
-      ga: p.goals + p.assists,
-      practicePoints: p.attendance + p.goals + p.assists + p.cleanSheet + (p.turbotorped * 5)
-    }));
+    .map(p => {
+      // Use calculated clean sheets if available, otherwise use original cleanSheet field
+      const cleanSheets = calculatedCleanSheets && calculatedCleanSheets[p.name] !== undefined
+        ? calculatedCleanSheets[p.name]
+        : p.cleanSheet;
+      return {
+        ...p,
+        cleanSheet: cleanSheets, // Override with calculated value
+        ga: p.goals + p.assists,
+        practicePoints: p.attendance + p.goals + p.assists + cleanSheets + (p.turbotorped * 5)
+      };
+    });
 
   const taken = new Set();
   const team = [];
@@ -1405,22 +1499,178 @@ function pickPracticeTopTeam(practice){
 
   return team.slice(0,5);
 }
+
+/* ------- Team Color Helpers ------- */
+function getPlayerTeam(practice, playerName){
+  if(!practice.teams) return null;
+  for(const team of practice.teams){
+    if(team.players.includes(playerName)){
+      return team.name;
+    }
+  }
+  return null;
+}
+
+function getTeamColor(teamName){
+  const teamColors = {
+    'Blå': { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.5)', badge: 'rgba(59, 130, 246, 0.8)' },
+    'Gul': { bg: 'rgba(234, 179, 8, 0.2)', border: 'rgba(234, 179, 8, 0.5)', badge: 'rgba(234, 179, 8, 0.8)' },
+    'Röd': { bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.5)', badge: 'rgba(239, 68, 68, 0.8)' },
+    'Black': { bg: 'rgba(0, 0, 0, 0.3)', border: 'rgba(100, 100, 100, 0.5)', badge: 'rgba(50, 50, 50, 0.9)' },
+    'Svart': { bg: 'rgba(0, 0, 0, 0.3)', border: 'rgba(100, 100, 100, 0.5)', badge: 'rgba(50, 50, 50, 0.9)' }
+  };
+  return teamColors[teamName] || { bg: 'rgba(255, 255, 255, 0.05)', border: 'rgba(255, 255, 255, 0.2)', badge: 'rgba(255, 255, 255, 0.3)' };
+}
+
+function renderTeamBadge(teamName){
+  if(!teamName) return '';
+  const color = getTeamColor(teamName);
+  return `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color.badge};border:1px solid ${color.border};margin-right:8px;vertical-align:middle;" title="${teamName}"></span>`;
+}
+
+/* ------- Team Scoreboard ------- */
+function calculateTeamStats(practice){
+  if(!practice.teams || !practice.matches || practice.matches.length === 0){
+    return null;
+  }
+  
+  // Initialize team stats
+  const teamStats = {};
+  practice.teams.forEach(team => {
+    teamStats[team.name] = {
+      name: team.name,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      cleanSheets: 0
+    };
+  });
+  
+  // Process matches
+  practice.matches.forEach(match => {
+    const homeTeam = teamStats[match.homeTeam];
+    const awayTeam = teamStats[match.awayTeam];
+    
+    if(homeTeam && awayTeam){
+      // Update goals
+      homeTeam.goalsFor += match.homeScore;
+      homeTeam.goalsAgainst += match.awayScore;
+      awayTeam.goalsFor += match.awayScore;
+      awayTeam.goalsAgainst += match.homeScore;
+      
+      // Update clean sheets
+      if(match.awayScore === 0){
+        homeTeam.cleanSheets++;
+      }
+      if(match.homeScore === 0){
+        awayTeam.cleanSheets++;
+      }
+      
+      // Update wins/draws/losses
+      if(match.homeScore > match.awayScore){
+        homeTeam.wins++;
+        awayTeam.losses++;
+      } else if(match.homeScore < match.awayScore){
+        homeTeam.losses++;
+        awayTeam.wins++;
+      } else {
+        homeTeam.draws++;
+        awayTeam.draws++;
+      }
+    }
+  });
+  
+  // Calculate goal difference and points
+  const teams = Object.values(teamStats).map(team => ({
+    ...team,
+    goalDifference: team.goalsFor - team.goalsAgainst,
+    points: team.wins * 3 + team.draws
+  }));
+  
+  // Sort by points (desc), then goal difference (desc), then goals for (desc)
+  teams.sort((a, b) => {
+    if(b.points !== a.points) return b.points - a.points;
+    if(b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+    return b.goalsFor - a.goalsFor;
+  });
+  
+  return teams;
+}
+
+function renderTeamScoreboard(practice){
+  const teamStats = calculateTeamStats(practice);
+  const panel = document.getElementById('teamScoreboardPanel');
+  const container = document.getElementById('teamScoreboard');
+  
+  if(!teamStats || teamStats.length === 0){
+    panel.style.display = 'none';
+    return;
+  }
+  
+  panel.style.display = 'block';
+  
+  container.innerHTML = `
+    <div class="scroll-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>CS</th><th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${teamStats.map((team, idx) => {
+            const color = getTeamColor(team.name);
+            const isFirst = idx === 0;
+            
+            return `<tr style="background: ${isFirst ? `linear-gradient(135deg, ${color.bg}, rgba(255,255,255,.02))` : `linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.01))`}; ${isFirst ? 'border-color: rgba(57,255,20,.3); box-shadow: 0 4px 16px rgba(57,255,20,.15);' : ''}">
+              <td>
+                <span style="font-weight:${isFirst ? '800' : '700'}; font-size:${isFirst ? '16px' : '15px'};">
+                  ${isFirst ? '🏆 ' : ''}${team.name}
+                </span>
+              </td>
+              <td style="color:${isFirst ? 'var(--green)' : 'var(--white)'}; font-weight:700;">${team.wins}</td>
+              <td style="color:var(--muted); font-weight:600;">${team.draws}</td>
+              <td style="color:var(--muted-2); font-weight:600;">${team.losses}</td>
+              <td style="font-weight:600;">${team.goalsFor}</td>
+              <td style="font-weight:600;">${team.goalsAgainst}</td>
+              <td style="color:${team.goalDifference >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${team.goalDifference >= 0 ? '+' : ''}${team.goalDifference}</td>
+              <td style="color:var(--green); font-weight:700;">${team.cleanSheets}</td>
+              <td style="font-weight:800; font-size:16px; color:var(--green);">${team.points}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 function updatePracticeView(){
   currentPractice=parseInt(document.getElementById('weekSelect').value);
   const practice=practices[currentPractice];
   renderDeviationLeaderForPractice(practice);
   const tbody=document.getElementById('weeklyStatsBody');
+  
+  // Calculate clean sheets from matches if available
+  const calculatedCleanSheets = calculateCleanSheetsFromMatches(practice);
 
   tbody.innerHTML = practice.stats
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(p=>{
-      const pts=p.attendance+p.goals+p.assists+p.cleanSheet+(p.turbotorped*5);
+      // Use calculated clean sheets if available, otherwise use original cleanSheet field
+      const cleanSheets = calculatedCleanSheets && calculatedCleanSheets[p.name] !== undefined
+        ? calculatedCleanSheets[p.name]
+        : p.cleanSheet;
+      const pts=p.attendance+p.goals+p.assists+cleanSheets+(p.turbotorped*5);
+      const playerTeam = getPlayerTeam(practice, p.name);
+      const badge = renderTeamBadge(playerTeam);
       return `<tr>
-        <td><span class="player-name">${p.name}</span></td>
+        <td>${badge}<span class="player-name">${p.name}</span></td>
         <td>${p.goals}</td>
         <td>${p.assists}</td>
-        <td>${p.cleanSheet}</td>
+        <td>${cleanSheets}</td>
         <td>${renderStars(p.turbotorped)}</td>
         <td><span class="points">${pts}</span></td>
       </tr>`;
@@ -1438,9 +1688,11 @@ function updatePracticeView(){
         }
         else tooltip = 'Selected by: Highest remaining points';
 
+        const playerTeam = getPlayerTeam(practice, p.name);
+        const badge = renderTeamBadge(playerTeam);
         return `
         <div class="team-player" title="${tooltip}">
-          <div class="team-player-name">${p.name}</div>
+          <div class="team-player-name">${badge}${p.name}</div>
           <div class="team-player-stats">
             ${p.role === 'ATT' ? 'ATT' : (p.role === 'DEF' ? 'DEF' : '★')}
             • ${p.goals}G ${p.assists}A
@@ -1455,6 +1707,9 @@ function updatePracticeView(){
   const newcomers=practice.stats.filter(p=>!prevNames.has(p.name));
   const np=document.getElementById('newPlayers');
   np.innerHTML = newcomers.length? newcomers.map(p=>`<div class="metric-item"><div class="metric-player new-player">🆕 ${p.name}</div></div>`).join('') : '<div class="empty-state">No new players this practice</div>';
+  
+  // Render team scoreboard if matches/teams data is available
+  renderTeamScoreboard(practice);
 }
 /* ------- Team Balancer ------- */
 let selectedPlayers = new Set();
