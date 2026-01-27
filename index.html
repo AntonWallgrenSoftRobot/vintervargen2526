@@ -1102,8 +1102,8 @@ function renderLeaderboard(){
         </div>
       </td>
       <td><span class="player-name">${p.name}</span></td>
-      <td><span class="points">${p.points}</span></td>
-      <td>${p.attendance}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.cleanSheets}</td><td>${p.turbotorped}</td>
+      <td><span class="points">${p.points}</span> <span style="color:var(--muted-2);font-size:12px;">(${p.attendance>0?(p.points/p.attendance).toFixed(2):'0.00'})</span></td>
+      <td>${p.attendance}</td><td>${p.goals} <span style="color:var(--muted-2);font-size:12px;">(${p.attendance>0?(p.goals/p.attendance).toFixed(2):'0.00'})</span></td><td>${p.assists} <span style="color:var(--muted-2);font-size:12px;">(${p.attendance>0?(p.assists/p.attendance).toFixed(2):'0.00'})</span></td><td>${p.cleanSheets} <span style="color:var(--muted-2);font-size:12px;">(${p.attendance>0?(p.cleanSheets/p.attendance).toFixed(2):'0.00'})</span></td><td>${p.turbotorped}</td>
     </tr>`;
   }).join('');
 
