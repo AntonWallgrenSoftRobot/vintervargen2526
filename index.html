@@ -724,9 +724,136 @@ input[type="range"]::-moz-range-track{
   border:1px solid var(--border);
   border-radius:3px;
 }
+
+/* ---------- Player Card Modal ---------- */
+.player-card-overlay{
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,.7); backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity .3s cubic-bezier(.4,0,.2,1);
+}
+.player-card-overlay.open{opacity:1; pointer-events:auto;}
+.player-card{
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01)), var(--panel);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:36px;
+  width:min(560px, 92vw);
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:var(--shadow-lg), 0 0 80px rgba(57,255,20,.1);
+  position:relative;
+  animation:cardIn .3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes cardIn{from{transform:scale(.92) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+
+.player-card-close{
+  position:absolute; top:16px; right:16px;
+  background:rgba(255,255,255,.08); border:1px solid var(--border);
+  color:var(--muted); border-radius:12px; width:36px; height:36px;
+  display:grid; place-items:center; cursor:pointer; font-size:18px;
+  transition:all .2s;
+}
+.player-card-close:hover{background:rgba(255,45,85,.2);color:var(--white);border-color:rgba(255,45,85,.4);}
+
+.pc-header{text-align:center; margin-bottom:28px;}
+.pc-name{
+  font-size:28px; font-weight:900; letter-spacing:-.03em;
+  background:linear-gradient(135deg, var(--white), rgba(255,255,255,.75));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.pc-rank-badge{
+  display:inline-flex; align-items:center; gap:8px;
+  margin-top:10px; padding:8px 18px; border-radius:999px;
+  font-weight:800; font-size:14px;
+}
+.pc-rank-1{background:linear-gradient(135deg,#ffd700,#ffb800);color:#1a1a1f;}
+.pc-rank-2{background:linear-gradient(135deg,#c0c0c0,#e8e8e8);color:#1a1a1f;}
+.pc-rank-3{background:linear-gradient(135deg,#cd7f32,#e8a862);color:#1a1a1f;}
+.pc-rank-other{background:rgba(255,255,255,.1);color:var(--muted);border:1px solid var(--border);}
+
+.pc-points{
+  margin-top:10px; font-size:36px; font-weight:900;
+  background:linear-gradient(120deg, var(--green), #c7ffc7);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.pc-points-avg{color:var(--muted-2); font-size:13px; font-weight:500; margin-top:2px;}
+
+.pc-section{margin-top:24px;}
+.pc-section-title{
+  font-size:10px; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(255,255,255,.4); margin-bottom:14px; font-weight:700;
+}
+
+.pc-stats-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+}
+@media(max-width:480px){.pc-stats-grid{grid-template-columns:repeat(2,1fr);}}
+.pc-stat{
+  background:rgba(255,255,255,.03); border:1px solid var(--border);
+  border-radius:16px; padding:14px; text-align:center;
+}
+.pc-stat-value{font-size:20px; font-weight:800; color:var(--white);}
+.pc-stat-avg{font-size:11px; color:var(--muted-2); margin-top:2px;}
+.pc-stat-label{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:6px; font-weight:600;}
+
+.pc-match-bar{
+  display:flex; height:10px; border-radius:8px; overflow:hidden; margin-top:8px;
+  background:rgba(255,255,255,.05);
+}
+.pc-match-bar .w{background:var(--green);}
+.pc-match-bar .d{background:rgba(255,255,255,.35);}
+.pc-match-bar .l{background:var(--red);}
+
+.pc-ranks-grid{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:8px;
+}
+.pc-rank-item{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 14px; border-radius:12px;
+  background:rgba(255,255,255,.03); border:1px solid var(--border);
+  font-size:13px;
+}
+.pc-rank-item .label{color:var(--muted); font-weight:500;}
+.pc-rank-item .val{font-weight:800; color:var(--white);}
+.pc-rank-item .val.top3{color:var(--green);}
+
+.pc-sparkline{
+  margin-top:10px; height:60px; display:flex; align-items:flex-end; gap:3px;
+}
+.pc-spark-bar{
+  flex:1; border-radius:4px 4px 0 0; min-width:4px;
+  background:linear-gradient(180deg, var(--green), rgba(57,255,20,.3));
+  transition:all .3s;
+  position:relative;
+}
+.pc-spark-bar:hover{
+  background:linear-gradient(180deg, #fff, var(--green));
+  box-shadow:0 0 8px rgba(57,255,20,.5);
+}
+.pc-spark-zero{
+  flex:1; min-width:4px; height:2px; border-radius:1px;
+  background:rgba(255,255,255,.1);
+}
+
+.pc-highlight{
+  display:flex; align-items:center; gap:14px;
+  padding:14px 18px; border-radius:16px;
+  background:rgba(255,255,255,.03); border:1px solid var(--border);
+  margin-top:10px;
+}
+.pc-highlight-icon{font-size:22px;}
+.pc-highlight-text{font-size:13px; color:var(--muted); font-weight:500;}
+.pc-highlight-text strong{color:var(--white); font-weight:700;}
+
+tr.clickable-row{cursor:pointer;}
 </style>
 </head>
 <body>
+  <div class="player-card-overlay" id="playerCardOverlay" onclick="if(event.target===this)closePlayerCard()">
+    <div class="player-card" id="playerCardContent"></div>
+  </div>
   <div class="app">
 
     <!-- Main -->
@@ -759,6 +886,20 @@ input[type="range"]::-moz-range-track{
                     </tr>
                   </thead>
                   <tbody id="leaderboardBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel leaderboard">
+            <div class="section-title">⚽ Match Points</div>
+            <div class="scroll-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th><th>Player</th><th>Match Pts</th><th>W</th><th>D</th><th>L</th><th>Played</th>
+                  </tr>
+                </thead>
+                <tbody id="matchPointsBody"></tbody>
               </table>
             </div>
           </div>
@@ -930,10 +1071,10 @@ input[type="range"]::-moz-range-track{
 <script>
 /* ------- Data (same structure as original) ------- */
 const weeklyData = [
-  {"week":42,"date":"2025-10-14","stats":[{"name":"Arvid","attendance":1,"goals":0,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":2,"cleanSheet":8,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":1,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Marco","attendance":1,"goals":2,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":2,"assists":3,"cleanSheet":4,"turbotorped":0},{"name":"Maxim","attendance":1,"goals":1,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Ayman","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":1},{"name":"Payam","attendance":1,"goals":3,"assists":3,"cleanSheet":8,"turbotorped":0},{"name":"Saman","attendance":1,"goals":1,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":2,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":4,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":2,"assists":2,"cleanSheet":8,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":3,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Oskar","attendance":1,"goals":0,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":4,"assists":3,"cleanSheet":8,"turbotorped":0},{"name":"Patrik","attendance":1,"goals":1,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Alex B","attendance":1,"goals":0,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Andres","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Kim","attendance":1,"goals":2,"assists":1,"cleanSheet":8,"turbotorped":0}]},
-  {"week":42,"date":"2025-10-16","stats":[{"name":"Lasse","attendance":1,"goals":2,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Marco","attendance":1,"goals":3,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":3,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Love B","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":1,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Malte","attendance":1,"goals":5,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Olle","attendance":1,"goals":2,"assists":3,"cleanSheet":11,"turbotorped":1},{"name":"Gurra","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":3,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Chris","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":3,"assists":1,"cleanSheet":11,"turbotorped":0}]},
-  {"week":43,"date":"2025-10-21","stats":[{"name":"Gio","attendance":1,"goals":0,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":3,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":5,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":3,"cleanSheet":4,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":3,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Kim","attendance":1,"goals":2,"assists":4,"cleanSheet":8,"turbotorped":0},{"name":"Marco","attendance":1,"goals":1,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Oskar","attendance":1,"goals":3,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":1,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":0,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":3,"cleanSheet":4,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":0,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Malte","attendance":1,"goals":2,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":3,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Milton","attendance":1,"goals":1,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Marius","attendance":1,"goals":0,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Martin Ja","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":1,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Olle","attendance":1,"goals":2,"assists":4,"cleanSheet":6,"turbotorped":0}]},
-  {"week":43,"date":"2025-10-23","stats":[{"name":"Erik Ö","attendance":1,"goals":4,"assists":2,"cleanSheet":7,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":3,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":2,"cleanSheet":2,"turbotorped":0},{"name":"Malte","attendance":1,"goals":3,"assists":3,"cleanSheet":5,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":0,"assists":3,"cleanSheet":7,"turbotorped":0},{"name":"Love B","attendance":1,"goals":3,"assists":0,"cleanSheet":2,"turbotorped":0},{"name":"Patrik","attendance":1,"goals":0,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Martin Ja","attendance":1,"goals":3,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Anton","attendance":1,"goals":2,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":0,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Marco","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Olle","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":5,"assists":1,"cleanSheet":2,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":2,"cleanSheet":2,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":2,"assists":1,"cleanSheet":2,"turbotorped":0},{"name":"Esmet","attendance":1,"goals":3,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Ante","attendance":1,"goals":5,"assists":3,"cleanSheet":5,"turbotorped":1}]},
+  {"week":42,"date":"2025-10-14","stats":[{"name":"Arvid","attendance":1,"goals":0,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":2,"cleanSheet":8,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":1,"assists":1,"cleanSheet":4,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Marco","attendance":1,"goals":2,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":2,"assists":3,"cleanSheet":4,"turbotorped":0},{"name":"Maxim","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Ayman","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":1},{"name":"Payam","attendance":1,"goals":3,"assists":3,"cleanSheet":8,"turbotorped":0},{"name":"Saman","attendance":1,"goals":1,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":2,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":4,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":2,"assists":2,"cleanSheet":8,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":3,"assists":0,"cleanSheet":4,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Oskar","attendance":1,"goals":0,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":4,"assists":3,"cleanSheet":8,"turbotorped":0},{"name":"Patrik","attendance":1,"goals":1,"assists":2,"cleanSheet":4,"turbotorped":0},{"name":"Alex B","attendance":1,"goals":0,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Andres","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Kim","attendance":1,"goals":2,"assists":1,"cleanSheet":8,"turbotorped":0}],"teams":[{"name":"Blå","players":["Arvid","Marco","Ayman","Johnson","Oskar","Andres"]},{"name":"Gul","players":["Chris","Pontus","Payam","Emil V","Erik Ö","Kim"]},{"name":"Svart","players":["Mathias","Lasse","Saman","Simon A","Patrik"]},{"name":"Röd","players":["Degen","Maxim","Andreas B","Anton","Alex B"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":2,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":4,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":1},{"matchNumber":5,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":1},{"matchNumber":6,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":7,"homeTeam":"Svart","awayTeam":"Röd","homeScore":2,"awayScore":1},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":9,"homeTeam":"Blå","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":10,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":1},{"matchNumber":11,"homeTeam":"Röd","awayTeam":"Gul","homeScore":1,"awayScore":2},{"matchNumber":12,"homeTeam":"Svart","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":14,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":16,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":17,"homeTeam":"Blå","awayTeam":"Svart","homeScore":2,"awayScore":0},{"matchNumber":18,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":19,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":21,"homeTeam":"Blå","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":22,"homeTeam":"Gul","awayTeam":"Svart","homeScore":2,"awayScore":0},{"matchNumber":23,"homeTeam":"Röd","awayTeam":"Gul","homeScore":0,"awayScore":2},{"matchNumber":24,"homeTeam":"Svart","awayTeam":"Blå","homeScore":1,"awayScore":1}]},
+  {"week":42,"date":"2025-10-16","stats":[{"name":"Lasse","attendance":1,"goals":2,"assists":2,"cleanSheet":7,"turbotorped":0},{"name":"Marco","attendance":1,"goals":3,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":3,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":2,"cleanSheet":7,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Love B","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":1,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Malte","attendance":1,"goals":5,"assists":0,"cleanSheet":7,"turbotorped":1},{"name":"Olle","attendance":1,"goals":2,"assists":3,"cleanSheet":11,"turbotorped":1},{"name":"Gurra","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":1,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":3,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Chris","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":3,"assists":1,"cleanSheet":11,"turbotorped":0}],"teams":[{"name":"Blå","players":["Simon A","Degen","Love B","Gurra","Arvid","Johnson"]},{"name":"Gul","players":["Lasse","Adde","Malte","Saman","Anton","Chris"]},{"name":"Röd","players":["Marco","Pontus","Love Ö","Olle","Abdul","Erik Ö","Emil V"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":1},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":1},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":2},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":11,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":14,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":23,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":2,"awayScore":2}]},
+  {"week":43,"date":"2025-10-21","stats":[{"name":"Gio","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":3,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":5,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":3,"cleanSheet":0,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":3,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Kim","attendance":1,"goals":2,"assists":4,"cleanSheet":0,"turbotorped":1},{"name":"Marco","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Oskar","attendance":1,"goals":3,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":3,"cleanSheet":0,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":0,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Malte","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":2,"assists":3,"cleanSheet":0,"turbotorped":0},{"name":"Milton","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Marius","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Martin Ja","attendance":1,"goals":2,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Olle","attendance":1,"goals":2,"assists":4,"cleanSheet":0,"turbotorped":0}],"teams":[{"name":"Röd","players":["Gio","Mathias","Andreas B","Emil V","Malte","Marius"]},{"name":"Gul","players":["Chris","Lasse","Saman","Arvid","Degen"]},{"name":"Blå","players":["Kim","Marco","Oskar","Simon A","Johnson","Milton"]},{"name":"Svart","players":["Anton","Abdul","Love Ö","Martin Ja","Olle"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":2,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":2,"awayScore":0},{"matchNumber":4,"homeTeam":"Gul","awayTeam":"Svart","homeScore":0,"awayScore":2},{"matchNumber":5,"homeTeam":"Blå","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":6,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":7,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":9,"homeTeam":"Blå","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":10,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":11,"homeTeam":"Röd","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":12,"homeTeam":"Svart","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":14,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":16,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":1},{"matchNumber":17,"homeTeam":"Blå","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":18,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":19,"homeTeam":"Svart","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Blå","homeScore":1,"awayScore":1},{"matchNumber":21,"homeTeam":"Blå","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":22,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":2},{"matchNumber":23,"homeTeam":"Röd","awayTeam":"Gul","homeScore":2,"awayScore":1},{"matchNumber":24,"homeTeam":"Svart","awayTeam":"Blå","homeScore":1,"awayScore":0}]},
+  {"week":43,"date":"2025-10-23","stats":[{"name":"Erik Ö","attendance":1,"goals":4,"assists":2,"cleanSheet":7,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":3,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":2,"cleanSheet":2,"turbotorped":0},{"name":"Malte","attendance":1,"goals":3,"assists":3,"cleanSheet":5,"turbotorped":0},{"name":"Abdul","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":1,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":0,"assists":3,"cleanSheet":7,"turbotorped":0},{"name":"Love B","attendance":1,"goals":3,"assists":0,"cleanSheet":2,"turbotorped":0},{"name":"Patrik","attendance":1,"goals":0,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Martin Ja","attendance":1,"goals":2,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Anton","attendance":1,"goals":2,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":0,"assists":2,"cleanSheet":5,"turbotorped":0},{"name":"Marco","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Olle","attendance":1,"goals":1,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":5,"assists":1,"cleanSheet":2,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":2,"cleanSheet":2,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":2,"assists":1,"cleanSheet":2,"turbotorped":0},{"name":"Esmet","attendance":1,"goals":3,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Ante","attendance":1,"goals":5,"assists":4,"cleanSheet":5,"turbotorped":1}],"teams":[{"name":"Blå","players":["Andreas B","Love Ö","Martin Ja","Adde","Arvid","Emil V"]},{"name":"Gul","players":["Erik Ö","Lasse","Gurra","Anton","Marco","Olle"]},{"name":"Röd","players":["Malte","Abdul","Patrik","Saman","Esmet","Ante"]},{"name":"Svart","players":["Degen","Love B","Johnson","Kim","Mathias"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":2,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":4,"homeTeam":"Gul","awayTeam":"Svart","homeScore":0,"awayScore":1},{"matchNumber":5,"homeTeam":"Blå","awayTeam":"Svart","homeScore":3,"awayScore":0},{"matchNumber":6,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":7,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Blå","homeScore":2,"awayScore":1},{"matchNumber":9,"homeTeam":"Blå","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":10,"homeTeam":"Gul","awayTeam":"Svart","homeScore":2,"awayScore":1},{"matchNumber":11,"homeTeam":"Röd","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":12,"homeTeam":"Svart","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":14,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":2},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":1},{"matchNumber":16,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":17,"homeTeam":"Blå","awayTeam":"Svart","homeScore":1,"awayScore":1},{"matchNumber":18,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":19,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Blå","homeScore":1,"awayScore":1},{"matchNumber":21,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":22,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":2},{"matchNumber":23,"homeTeam":"Röd","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":24,"homeTeam":"Svart","awayTeam":"Blå","homeScore":0,"awayScore":0}]},
   {"week":44,"date":"2025-10-28","stats":[{"name":"Lasse","attendance":1,"goals":3,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":1,"assists":0,"cleanSheet":10,"turbotorped":0},{"name":"Milton","attendance":1,"goals":1,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Marius","attendance":1,"goals":1,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Payam","attendance":1,"goals":5,"assists":4,"cleanSheet":10,"turbotorped":0},{"name":"Saman","attendance":1,"goals":1,"assists":0,"cleanSheet":10,"turbotorped":0},{"name":"Olle","attendance":1,"goals":2,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Emil N","attendance":1,"goals":2,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Marco","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Adde","attendance":1,"goals":2,"assists":0,"cleanSheet":10,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Oskar","attendance":1,"goals":0,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":2,"cleanSheet":10,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":1,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":1,"cleanSheet":5,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":0,"cleanSheet":5,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":1,"assists":4,"cleanSheet":8,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":1,"assists":1,"cleanSheet":10,"turbotorped":0},{"name":"Love B","attendance":1,"goals":0,"assists":3,"cleanSheet":8,"turbotorped":1},{"name":"Erik Ö","attendance":1,"goals":5,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":2,"assists":3,"cleanSheet":10,"turbotorped":0}],"teams":[{"name":"Svart","players":["Lasse","Milton","Emil N","Emil V","Simon A","Erik Ö","Love B"]},{"name":"Röd","players":["Mathias","Payam","Saman","Adde","Kim","Arvid","Andreas B"]},{"name":"Blå","players":["Marius","Olle","Marco","Chris","Anton","Johnson","Oskar"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":0},{"matchNumber":2,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":2},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":2},{"matchNumber":5,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":2,"awayScore":0},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":8,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Svart","homeScore":1,"awayScore":1},{"matchNumber":11,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":2},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":2},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":2},{"matchNumber":14,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":1},{"matchNumber":17,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":0},{"matchNumber":20,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":2},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Svart","homeScore":1,"awayScore":2},{"matchNumber":23,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0}]},
   {"week":44,"date":"2025-10-30","stats":[{"name":"Mathias","attendance":1,"goals":1,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":0,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Marco","attendance":1,"goals":4,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Payam","attendance":1,"goals":5,"assists":3,"cleanSheet":9,"turbotorped":0},{"name":"Love B","attendance":1,"goals":0,"assists":4,"cleanSheet":9,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":4,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":1,"cleanSheet":9,"turbotorped":1},{"name":"Degen","attendance":1,"goals":0,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":4,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Olle","attendance":1,"goals":2,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":0,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Martin Ja","attendance":1,"goals":0,"assists":3,"cleanSheet":6,"turbotorped":0},{"name":"Malte","attendance":1,"goals":2,"assists":2,"cleanSheet":9,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":2,"assists":4,"cleanSheet":9,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":2,"assists":1,"cleanSheet":9,"turbotorped":0}],"teams":[{"name":"Blå","players":["Mathias","Adde","Degen","Love Ö","Malte","Erik Ö"]},{"name":"Gul","players":["Saman","Emil V","Marco","Payam","Love B","Anton","Arvid"]},{"name":"Röd","players":["Andreas B","Johnson","Lasse","Olle","Gurra","Martin Ja"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":1},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":2},{"matchNumber":11,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":14,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":2},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":23,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1}]},
   {"week":45,"date":"2025-11-04","stats":[{"name":"Milton","attendance":1,"goals":1,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Lasse","attendance":1,"goals":2,"assists":3,"cleanSheet":11,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Erik Ö","attendance":1,"goals":4,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":3,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Oskar","attendance":1,"goals":2,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":3,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":0,"cleanSheet":11,"turbotorped":0},{"name":"Love B","attendance":1,"goals":2,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Marco","attendance":1,"goals":0,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":0,"assists":1,"cleanSheet":11,"turbotorped":0},{"name":"Chris","attendance":1,"goals":1,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Martin Ja","attendance":1,"goals":1,"assists":2,"cleanSheet":11,"turbotorped":0},{"name":"Malte","attendance":1,"goals":2,"assists":4,"cleanSheet":11,"turbotorped":1},{"name":"Anton","attendance":1,"goals":0,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":11,"turbotorped":0},{"name":"Kim","attendance":1,"goals":2,"assists":2,"cleanSheet":8,"turbotorped":0},{"name":"Olle","attendance":1,"goals":7,"assists":1,"cleanSheet":11,"turbotorped":0}],"teams":[{"name":"Gul","players":["Milton","Love Ö","Love B","Chris","Anton","Kim"]},{"name":"Blå","players":["Lasse","Erik Ö","Degen","Marco","Martin Ja","Olle"]},{"name":"Röd","players":["Pontus","Oskar","Arvid","Mathias","Malte","Andreas B"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":3,"awayScore":0},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":3,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":2,"awayScore":0},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":11,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":14,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":3,"awayScore":0},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":2,"awayScore":0},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":23,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":3}]},
@@ -964,7 +1105,8 @@ const weeklyData = [
   {"week":8,"date":"2026-02-17","stats":[{"name":"Malte","attendance":1,"goals":1,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Jonathan","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Max","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Bram","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Serhiy","attendance":1,"goals":3,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Pierre","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Marcus","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Simon A","attendance":1,"goals":6,"assists":1,"cleanSheet":0,"turbotorped":1},{"name":"Reyan","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Emil N","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Marco","attendance":1,"goals":3,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":1,"assists":3,"cleanSheet":0,"turbotorped":0},{"name":"Herman","attendance":1,"goals":0,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Love B","attendance":1,"goals":2,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Fredrik","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0}],"teams":[{"name":"Blå","players":["Malte","Jonathan","Max","Bram","Serhiy","Degen"]},{"name":"Gul","players":["Pierre","Emil V","Marcus","Andreas B","Saman","Arvid"]},{"name":"Röd","players":["Simon A","Reyan","Kim","Mathias","Anton","Emil N"]},{"name":"Svart","players":["Marco","Love Ö","Herman","Love B","Chris","Fredrik"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":2,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":4,"homeTeam":"Gul","awayTeam":"Svart","homeScore":0,"awayScore":1},{"matchNumber":5,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":1},{"matchNumber":6,"homeTeam":"Gul","awayTeam":"Röd","homeScore":5,"awayScore":0},{"matchNumber":7,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":9,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":10,"homeTeam":"Gul","awayTeam":"Svart","homeScore":0,"awayScore":1},{"matchNumber":11,"homeTeam":"Röd","awayTeam":"Gul","homeScore":2,"awayScore":1},{"matchNumber":12,"homeTeam":"Svart","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":14,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":16,"homeTeam":"Gul","awayTeam":"Svart","homeScore":0,"awayScore":0},{"matchNumber":17,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":1},{"matchNumber":18,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":4},{"matchNumber":19,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":2},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":21,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":22,"homeTeam":"Gul","awayTeam":"Svart","homeScore":2,"awayScore":0},{"matchNumber":23,"homeTeam":"Röd","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":24,"homeTeam":"Svart","awayTeam":"Blå","homeScore":1,"awayScore":1}]},
   {"week":8,"date":"2026-02-19","stats":[{"name":"Payam","attendance":1,"goals":5,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Marcus","attendance":1,"goals":3,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Malte","attendance":1,"goals":1,"assists":4,"cleanSheet":0,"turbotorped":0},{"name":"Marco","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Jonathan","attendance":1,"goals":4,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Love B","attendance":1,"goals":1,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Bram","attendance":1,"goals":3,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Serhiy","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":1},{"name":"Tim","attendance":1,"goals":4,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Alex D","attendance":1,"goals":3,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Love Ö","attendance":1,"goals":1,"assists":5,"cleanSheet":0,"turbotorped":0},{"name":"Reyan","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0}],"teams":[{"name":"Blå","players":["Payam","Gurra","Johnson","Kim","Marcus","Degen","Saman"]},{"name":"Gul","players":["Malte","Marco","Jonathan","Love B","Bram","Serhiy","Arvid"]},{"name":"Röd","players":["Tim","Alex D","Love Ö","Reyan","Emil V","Chris","Anton"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":1},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":3,"awayScore":1},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":2},{"matchNumber":11,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":14,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":23,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":2,"awayScore":1}]},
   {"week":9,"date":"2026-02-26","stats":[{"name":"Payam","attendance":1,"goals":4,"assists":3,"cleanSheet":7,"turbotorped":0},{"name":"Emil V","attendance":1,"goals":2,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Chris","attendance":1,"goals":3,"assists":0,"cleanSheet":7,"turbotorped":0},{"name":"Anton","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Degen","attendance":1,"goals":0,"assists":1,"cleanSheet":7,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":7,"turbotorped":1},{"name":"Olle","attendance":1,"goals":2,"assists":5,"cleanSheet":9,"turbotorped":0},{"name":"Love B","attendance":1,"goals":2,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Kim","attendance":1,"goals":3,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Serhiy","attendance":1,"goals":5,"assists":3,"cleanSheet":9,"turbotorped":0},{"name":"Pooria","attendance":1,"goals":0,"assists":1,"cleanSheet":9,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":3,"assists":0,"cleanSheet":9,"turbotorped":0},{"name":"Alex D","attendance":1,"goals":4,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Reyan","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":2,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Bram","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":0,"assists":2,"cleanSheet":6,"turbotorped":0},{"name":"Adde","attendance":1,"goals":0,"assists":0,"cleanSheet":6,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":0,"assists":3,"cleanSheet":3,"turbotorped":0},{"name":"Johnson","attendance":1,"goals":2,"assists":1,"cleanSheet":3,"turbotorped":0},{"name":"Herman","attendance":1,"goals":4,"assists":0,"cleanSheet":3,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":0,"assists":1,"cleanSheet":3,"turbotorped":0},{"name":"Marcus","attendance":1,"goals":0,"assists":0,"cleanSheet":3,"turbotorped":0}],"teams":[{"name":"Blå","players":["Payam","Emil V","Chris","Anton","Degen","Saman"]},{"name":"Gul","players":["Olle","Love B","Kim","Serhiy","Pooria","Arvid"]},{"name":"Röd","players":["Alex D","Reyan","Andreas B","Bram","Mathias","Adde"]},{"name":"Svart","players":["Gurra","Johnson","Herman","Pontus","Marcus"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":1},{"matchNumber":2,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":4,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":5,"homeTeam":"Blå","awayTeam":"Svart","homeScore":1,"awayScore":1},{"matchNumber":6,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":2},{"matchNumber":7,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Blå","homeScore":2,"awayScore":0},{"matchNumber":9,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":10,"homeTeam":"Gul","awayTeam":"Svart","homeScore":2,"awayScore":0},{"matchNumber":11,"homeTeam":"Röd","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":12,"homeTeam":"Svart","awayTeam":"Blå","homeScore":0,"awayScore":2},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":14,"homeTeam":"Svart","awayTeam":"Röd","homeScore":1,"awayScore":2},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":16,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":17,"homeTeam":"Blå","awayTeam":"Svart","homeScore":0,"awayScore":2},{"matchNumber":18,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":19,"homeTeam":"Svart","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":21,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":22,"homeTeam":"Gul","awayTeam":"Svart","homeScore":1,"awayScore":0},{"matchNumber":23,"homeTeam":"Röd","awayTeam":"Gul","homeScore":1,"awayScore":1},{"matchNumber":24,"homeTeam":"Svart","awayTeam":"Blå","homeScore":2,"awayScore":0}]}  ,
-  {"week":10,"date":"2026-03-05","stats":[{"name":"Alex D","attendance":1,"goals":1,"assists":2,"cleanSheet":14,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":1,"assists":1,"cleanSheet":14,"turbotorped":0},{"name":"Marcus","attendance":1,"goals":8,"assists":1,"cleanSheet":14,"turbotorped":0},{"name":"Adde","attendance":1,"goals":3,"assists":0,"cleanSheet":14,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":4,"cleanSheet":14,"turbotorped":1},{"name":"Love Ö","attendance":1,"goals":3,"assists":5,"cleanSheet":8,"turbotorped":0},{"name":"Serhiy","attendance":1,"goals":3,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Reyan","attendance":1,"goals":2,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Love B","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Herman","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Alex B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0}],"teams":[{"name":"Blå","players":["Alex D","Gurra","Marcus","Adde","Kim"]},{"name":"Gul","players":["Love Ö","Serhiy","Reyan","Anton","Saman"]},{"name":"Röd","players":["Love B","Herman","Mathias","Chris","Alex B"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":3},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":11,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":14,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":1},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":2},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":23,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0}]}
+  {"week":10,"date":"2026-03-05","stats":[{"name":"Alex D","attendance":1,"goals":1,"assists":2,"cleanSheet":14,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":1,"assists":1,"cleanSheet":14,"turbotorped":0},{"name":"Marcus","attendance":1,"goals":8,"assists":1,"cleanSheet":14,"turbotorped":0},{"name":"Adde","attendance":1,"goals":3,"assists":0,"cleanSheet":14,"turbotorped":0},{"name":"Kim","attendance":1,"goals":1,"assists":4,"cleanSheet":14,"turbotorped":1},{"name":"Love Ö","attendance":1,"goals":3,"assists":5,"cleanSheet":8,"turbotorped":0},{"name":"Serhiy","attendance":1,"goals":3,"assists":1,"cleanSheet":8,"turbotorped":0},{"name":"Reyan","attendance":1,"goals":2,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Saman","attendance":1,"goals":0,"assists":0,"cleanSheet":8,"turbotorped":0},{"name":"Love B","attendance":1,"goals":1,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Herman","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Mathias","attendance":1,"goals":0,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":1,"cleanSheet":6,"turbotorped":0},{"name":"Alex B","attendance":1,"goals":1,"assists":0,"cleanSheet":6,"turbotorped":0}],"teams":[{"name":"Blå","players":["Alex D","Gurra","Marcus","Adde","Kim"]},{"name":"Gul","players":["Love Ö","Serhiy","Reyan","Anton","Saman"]},{"name":"Röd","players":["Love B","Herman","Mathias","Chris","Alex B"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":4,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":6,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":3},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":9,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":10,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":11,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":0},{"matchNumber":14,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":16,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":1},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":2,"awayScore":1},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":21,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":2},{"matchNumber":22,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":23,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":2},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0}]},
+  {"week":11,"date":"2026-03-12","stats":[{"name":"Love Ö","attendance":1,"goals":5,"assists":4,"cleanSheet":0,"turbotorped":0},{"name":"Kim","attendance":1,"goals":3,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Pontus","attendance":1,"goals":2,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Adde","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Alex B","attendance":1,"goals":0,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Simon X","attendance":1,"goals":2,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Serhiy","attendance":1,"goals":2,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Andreas B","attendance":1,"goals":2,"assists":3,"cleanSheet":0,"turbotorped":1},{"name":"Emil V","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Arvid","attendance":1,"goals":0,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Degen","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Gurra","attendance":1,"goals":1,"assists":2,"cleanSheet":0,"turbotorped":0},{"name":"Herman","attendance":1,"goals":1,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Pooria","attendance":1,"goals":0,"assists":0,"cleanSheet":0,"turbotorped":0},{"name":"Chris","attendance":1,"goals":2,"assists":1,"cleanSheet":0,"turbotorped":0},{"name":"Anton","attendance":1,"goals":1,"assists":1,"cleanSheet":0,"turbotorped":0}],"teams":[{"name":"Blå","players":["Love Ö","Kim","Pontus","Adde","Alex B"]},{"name":"Gul","players":["Simon X","Serhiy","Andreas B","Emil V","Arvid","Degen"]},{"name":"Röd","players":["Gurra","Herman","Pooria","Chris","Anton"]}],"matches":[{"matchNumber":1,"homeTeam":"Blå","awayTeam":"Gul","homeScore":1,"awayScore":0},{"matchNumber":2,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":3,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":0},{"matchNumber":4,"homeTeam":"Gul","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":5,"homeTeam":"Gul","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":6,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":1},{"matchNumber":7,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":8,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":0},{"matchNumber":9,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":10,"homeTeam":"Gul","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":11,"homeTeam":"Röd","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":12,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1},{"matchNumber":13,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":14,"homeTeam":"Röd","awayTeam":"Gul","homeScore":0,"awayScore":2},{"matchNumber":15,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":2},{"matchNumber":16,"homeTeam":"Gul","awayTeam":"Blå","homeScore":1,"awayScore":1},{"matchNumber":17,"homeTeam":"Gul","awayTeam":"Röd","homeScore":0,"awayScore":1},{"matchNumber":18,"homeTeam":"Röd","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":19,"homeTeam":"Blå","awayTeam":"Gul","homeScore":0,"awayScore":0},{"matchNumber":20,"homeTeam":"Gul","awayTeam":"Röd","homeScore":2,"awayScore":0},{"matchNumber":21,"homeTeam":"Blå","awayTeam":"Röd","homeScore":1,"awayScore":0},{"matchNumber":22,"homeTeam":"Gul","awayTeam":"Blå","homeScore":1,"awayScore":0},{"matchNumber":23,"homeTeam":"Röd","awayTeam":"Gul","homeScore":3,"awayScore":1},{"matchNumber":24,"homeTeam":"Röd","awayTeam":"Blå","homeScore":0,"awayScore":1}]}
 ];
 /* ------- NEW: merge Tue/Thu entries per ISO date within a week ------- */
 function formatPracticeDate(iso){
@@ -1092,19 +1234,28 @@ function renderLeaderboard(){
       })
     });
     const prevBoard=Object.entries(prev).map(([name,s])=>({name,points:calculatePoints(s)})).sort((a,b)=>b.points-a.points);
-    prevBoard.forEach((p,i)=>previousRankings[p.name]=i+1);
+    prevBoard.forEach((p,i)=>{
+      previousRankings[p.name] = (i>0 && prevBoard[i-1].points===p.points) ? previousRankings[prevBoard[i-1].name] : i+1;
+    });
   }
+
+  // Assign ranks with ties getting the same position
+  let lastRank=1;
+  leaderboard.forEach((p,i)=>{
+    p.rank = (i>0 && leaderboard[i-1].points===p.points) ? lastRank : i+1;
+    lastRank = p.rank;
+  });
 
   const tbody=document.getElementById('leaderboardBody');
   tbody.innerHTML = leaderboard.map((p,i)=>{
-    const currentRank=i+1, prevRank=previousRankings[p.name];
+    const currentRank=p.rank, prevRank=previousRankings[p.name];
     let delta='';
     if(prevRank){
       const d=prevRank-currentRank;
       if(d>0) delta=`<span class="rank-change rank-up">▲${d}</span>`;
       else if(d<0) delta=`<span class="rank-change rank-down">▼${Math.abs(d)}</span>`;
     }
-    return `<tr>
+    return `<tr class="clickable-row" onclick="openPlayerCard('${p.name}')">
       <td>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
           <span class="rank">${currentRank}</span>${delta}
@@ -1128,6 +1279,274 @@ function renderLeaderboard(){
 
   return leaderboard;
 }
+
+function renderMatchPoints(){
+  const playerMatchStats={};
+  practices.forEach(practice=>{
+    if(!practice.teams || !practice.matches || practice.matches.length===0) return;
+    // Map player -> team name
+    const playerToTeam={};
+    practice.teams.forEach(t=>t.players.forEach(p=>{playerToTeam[p]=t.name;}));
+    // Tally W/D/L per player
+    practice.matches.forEach(match=>{
+      const isDraw=match.homeScore===match.awayScore;
+      const homeWin=match.homeScore>match.awayScore;
+      practice.stats.forEach(p=>{
+        if(!p.attendance) return;
+        const team=playerToTeam[p.name];
+        if(!team) return;
+        const isHome=team===match.homeTeam;
+        const isAway=team===match.awayTeam;
+        if(!isHome && !isAway) return;
+        if(!playerMatchStats[p.name]) playerMatchStats[p.name]={w:0,d:0,l:0,played:0,attendance:0};
+        playerMatchStats[p.name].played++;
+        if(isDraw) playerMatchStats[p.name].d++;
+        else if((isHome && homeWin)||(!isHome && !homeWin)) playerMatchStats[p.name].w++;
+        else playerMatchStats[p.name].l++;
+      });
+    });
+    // Count attendance for avg calculation
+    practice.stats.forEach(p=>{
+      if(!p.attendance) return;
+      if(!playerMatchStats[p.name]) return;
+      if(!playerMatchStats[p.name]._countedDates) playerMatchStats[p.name]._countedDates=new Set();
+      if(!playerMatchStats[p.name]._countedDates.has(practice.date)){
+        playerMatchStats[p.name]._countedDates.add(practice.date);
+        playerMatchStats[p.name].attendance++;
+      }
+    });
+  });
+
+  const board=Object.entries(playerMatchStats)
+    .map(([name,s])=>({name,...s,matchPts:s.w*3+s.d}))
+    .sort((a,b)=>b.matchPts-a.matchPts);
+
+  // Assign ranks with ties
+  let lastRank=1;
+  board.forEach((p,i)=>{
+    p.rank=(i>0 && board[i-1].matchPts===p.matchPts)?lastRank:i+1;
+    lastRank=p.rank;
+  });
+
+  const tbody=document.getElementById('matchPointsBody');
+  tbody.innerHTML=board.map(p=>{
+    const avg=p.attendance>0?(p.matchPts/p.attendance).toFixed(2):'0.00';
+    return `<tr class="clickable-row" onclick="openPlayerCard('${p.name}')">
+      <td><span class="rank">${p.rank}</span></td>
+      <td><span class="player-name">${p.name}</span></td>
+      <td><span class="points">${p.matchPts}</span> <span style="color:var(--muted-2);font-size:12px;">(${avg})</span></td>
+      <td>${p.w}</td><td>${p.d}</td><td>${p.l}</td><td>${p.played}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ------- Player Card ------- */
+function closePlayerCard(){document.getElementById('playerCardOverlay').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePlayerCard();});
+function openPlayerCard(playerName){
+  const totalStats=calculateTotalStats();
+  const ps=totalStats[playerName];
+  if(!ps) return;
+  const totalPractices=practices.length;
+  const pts=calculatePoints(ps);
+  const avg=ps.attendance>0?(pts/ps.attendance).toFixed(2):'0.00';
+
+  // Build leaderboard to find rank + category ranks
+  // Compute match stats for all players
+  const allMatchStats={};
+  practices.forEach(practice=>{
+    if(!practice.teams||!practice.matches||!practice.matches.length) return;
+    const ptMap={};
+    practice.teams.forEach(t=>t.players.forEach(p=>{ptMap[p]=t.name;}));
+    practice.stats.forEach(pStat=>{
+      if(!pStat.attendance) return;
+      const team=ptMap[pStat.name];
+      if(!team) return;
+      if(!allMatchStats[pStat.name]) allMatchStats[pStat.name]={w:0,d:0,l:0};
+      practice.matches.forEach(match=>{
+        const isHome=team===match.homeTeam, isAway=team===match.awayTeam;
+        if(!isHome&&!isAway) return;
+        if(match.homeScore===match.awayScore) allMatchStats[pStat.name].d++;
+        else if((isHome&&match.homeScore>match.awayScore)||(!isHome&&match.awayScore>match.homeScore)) allMatchStats[pStat.name].w++;
+        else allMatchStats[pStat.name].l++;
+      });
+    });
+  });
+
+  const lb=Object.entries(totalStats)
+    .map(([n,s])=>{
+      const ms=allMatchStats[n]||{w:0,d:0,l:0};
+      return {name:n,...s,points:calculatePoints(s),matchPts:ms.w*3+ms.d,mW:ms.w,mD:ms.d,mL:ms.l};
+    })
+    .sort((a,b)=>b.points-a.points);
+  let lastR=1;
+  lb.forEach((p,i)=>{p.rank=(i>0&&lb[i-1].points===p.points)?lastR:i+1;lastR=p.rank;});
+  const me=lb.find(p=>p.name===playerName);
+  const rank=me?me.rank:'-';
+
+  // Player's match stats from lb
+  const mW=me?me.mW:0, mD=me?me.mD:0, mL=me?me.mL:0;
+  const matchPts=mW*3+mD;
+  const matchTotal=mW+mD+mL;
+  const winRate=matchTotal>0?Math.round((mW/matchTotal)*100):0;
+
+  // Category ranks (dense ranking)
+  function getCategoryRank(arr,name){
+    let lr=1;
+    for(let i=0;i<arr.length;i++){
+      if(i>0&&arr[i-1].v!==arr[i].v) lr=i+1;
+      if(arr[i].name===name) return lr;
+    }
+    return '-';
+  }
+  const cats=[
+    {label:'Goals',key:'goals'},{label:'Assists',key:'assists'},
+    {label:'Clean Sheets',key:'cleanSheets'},{label:'Attendance',key:'attendance'},
+    {label:'Points',key:'points'},{label:'Match Pts',key:'matchPts'},
+    {label:'Turbotorped',key:'turbotorped'}
+  ];
+  const minPractices=5;
+  const catRanks={};
+  const catAvgRanks={};
+  cats.forEach(c=>{
+    const sorted=lb.map(p=>({name:p.name,v:p[c.key]})).sort((a,b)=>b.v-a.v);
+    catRanks[c.label]=getCategoryRank(sorted,playerName);
+    if(c.key==='attendance'){catAvgRanks[c.label]=null; return;}
+    const eligible=lb.filter(p=>p.attendance>=minPractices);
+    const sortedAvg=eligible.map(p=>({name:p.name,v:p.attendance>0?p[c.key]/p.attendance:0})).sort((a,b)=>b.v-a.v);
+    catAvgRanks[c.label]=ps.attendance>=minPractices?getCategoryRank(sortedAvg,playerName):null;
+  });
+
+  // Per-practice points for sparkline
+  const sortedPractices=practices.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const perPractice=[];
+  sortedPractices.forEach(practice=>{
+    const pStat=practice.stats.find(p=>p.name===playerName&&p.attendance>0);
+    if(!pStat) return;
+    const calcCS=calculateCleanSheetsFromMatches(practice);
+    const cs=calcCS&&calcCS[playerName]!==undefined?calcCS[playerName]:pStat.cleanSheet;
+    const pPts=pStat.attendance+pStat.goals+pStat.assists+cs+(pStat.turbotorped*5);
+    perPractice.push({date:practice.date,pts:pPts,goals:pStat.goals,assists:pStat.assists});
+  });
+  const maxPts=Math.max(...perPractice.map(p=>p.pts),1);
+
+  // Best practice
+  let best={pts:0,date:''};
+  perPractice.forEach(p=>{if(p.pts>best.pts) best=p;});
+
+  // Longest attendance streak
+  let longestStreak=0,cur=0;
+  sortedPractices.forEach(practice=>{
+    const attended=practice.stats.find(p=>p.name===playerName&&p.attendance>0);
+    if(attended){cur++;if(cur>longestStreak)longestStreak=cur;}else{cur=0;}
+  });
+
+  // Medal icon
+  const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+  const rankClass=rank<=3?`pc-rank-${rank}`:'pc-rank-other';
+
+  const html=`
+    <button class="player-card-close" onclick="closePlayerCard()">&times;</button>
+    <div class="pc-header">
+      <div class="pc-name">${playerName}</div>
+      <div><span class="pc-rank-badge ${rankClass}">${medal} #${rank} overall</span></div>
+      <div class="pc-points">${pts}</div>
+      <div class="pc-points-avg">${avg} pts per practice</div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title">Season Stats</div>
+      <div class="pc-stats-grid">
+        <div class="pc-stat">
+          <div class="pc-stat-value">${ps.attendance}<span style="font-size:13px;font-weight:500;color:var(--muted-2)">/${totalPractices}</span></div>
+          <div class="pc-stat-avg">${Math.round((ps.attendance/totalPractices)*100)}%</div>
+          <div class="pc-stat-label">Attendance</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-value">${ps.goals}</div>
+          <div class="pc-stat-avg">${ps.attendance>0?(ps.goals/ps.attendance).toFixed(2):'0'}/practice</div>
+          <div class="pc-stat-label">Goals</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-value">${ps.assists}</div>
+          <div class="pc-stat-avg">${ps.attendance>0?(ps.assists/ps.attendance).toFixed(2):'0'}/practice</div>
+          <div class="pc-stat-label">Assists</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-value">${ps.cleanSheets}</div>
+          <div class="pc-stat-avg">${ps.attendance>0?(ps.cleanSheets/ps.attendance).toFixed(2):'0'}/practice</div>
+          <div class="pc-stat-label">Clean Sheets</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-value">${ps.turbotorped}</div>
+          <div class="pc-stat-avg">${ps.turbotorped>0?'+'+ps.turbotorped*5+' pts':'-'}</div>
+          <div class="pc-stat-label">&Uuml;bertorped</div>
+        </div>
+        <div class="pc-stat">
+          <div class="pc-stat-value">${matchPts}</div>
+          <div class="pc-stat-avg">${ps.attendance>0?(matchPts/ps.attendance).toFixed(2):'0'}/practice</div>
+          <div class="pc-stat-label">Match Pts</div>
+        </div>
+      </div>
+    </div>
+
+    ${matchTotal>0?`
+    <div class="pc-section">
+      <div class="pc-section-title">Match Record</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:700;">${mW}W ${mD}D ${mL}L</span>
+        <span style="font-size:13px;color:var(--muted);">${winRate}% win rate</span>
+      </div>
+      <div class="pc-match-bar">
+        <div class="w" style="width:${(mW/matchTotal)*100}%"></div>
+        <div class="d" style="width:${(mD/matchTotal)*100}%"></div>
+        <div class="l" style="width:${(mL/matchTotal)*100}%"></div>
+      </div>
+    </div>`:''}
+
+    <div class="pc-section">
+      <div class="pc-section-title">Category Rankings</div>
+      <div class="pc-ranks-grid">
+        ${cats.map(c=>{
+          const r=catRanks[c.label];
+          const ar=catAvgRanks[c.label];
+          const avgStr=ar!=null?` <span style="color:var(--muted-2);font-size:11px;font-weight:500;">(#${ar} avg)</span>`:'';
+          return `<div class="pc-rank-item">
+            <span class="label">${c.label}</span>
+            <span class="val ${r<=3?'top3':''}">#${r}${avgStr}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title">Season Arc — Points per Practice</div>
+      <div class="pc-sparkline">
+        ${perPractice.map(p=>
+          p.pts>0
+            ?`<div class="pc-spark-bar" style="height:${Math.max((p.pts/maxPts)*100,6)}%" title="${p.date}: ${p.pts} pts"></div>`
+            :`<div class="pc-spark-zero" title="${p.date}: 0 pts"></div>`
+        ).join('')}
+      </div>
+    </div>
+
+    <div class="pc-section">
+      <div class="pc-section-title">Season Highs</div>
+      <div class="pc-highlight">
+        <div class="pc-highlight-icon">⭐</div>
+        <div class="pc-highlight-text">Best practice: <strong>${best.pts} pts</strong> on ${best.date}</div>
+      </div>
+      <div class="pc-highlight">
+        <div class="pc-highlight-icon">🔥</div>
+        <div class="pc-highlight-text">Longest attendance streak: <strong>${longestStreak} practice${longestStreak!==1?'s':''}</strong></div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('playerCardContent').innerHTML=html;
+  document.getElementById('playerCardOverlay').classList.add('open');
+}
+
 function calculateStreaks(playerStats){
   const streaks=[];
 
@@ -1899,7 +2318,7 @@ function updatePracticeView(){
       const pts=p.attendance+p.goals+p.assists+cleanSheets+(p.turbotorped*5);
       const playerTeam = getPlayerTeam(practice, p.name);
       const badge = renderTeamBadge(playerTeam);
-      return `<tr>
+      return `<tr class="clickable-row" onclick="openPlayerCard('${p.name}')">
         <td>${badge}<span class="player-name">${p.name}</span></td>
         <td>${p.goals}</td>
         <td>${p.assists}</td>
@@ -2972,7 +3391,7 @@ function showView(view, fromRestore = false){
   }
   
   if(view==='total'){
-    renderLeaderboard(); renderActiveStreaks(); renderHotStreak(); renderMilestones(); renderBiggestClimber(); renderSeasonStats();
+    renderLeaderboard(); renderMatchPoints(); renderActiveStreaks(); renderHotStreak(); renderMilestones(); renderBiggestClimber(); renderSeasonStats();
   }else if(view==='weekly'){
     populatePracticeSelector(); updatePracticeView();
   }else if(view==='teams'){
