@@ -1417,6 +1417,44 @@ function openPlayerCard(playerName){
     catAvgRanks[c.label]=ps.attendance>=minPractices?getCategoryRank(sortedAvg,playerName):null;
   });
 
+  // Best pairings: W/D/L when on the same team
+  const pairStats={};
+  practices.forEach(practice=>{
+    if(!practice.teams||!practice.matches||!practice.matches.length) return;
+    const ptMap={};
+    practice.teams.forEach(t=>t.players.forEach(p=>{ptMap[p]=t.name;}));
+    const myTeam=ptMap[playerName];
+    if(!myTeam) return;
+    const attended=practice.stats.find(p=>p.name===playerName&&p.attendance>0);
+    if(!attended) return;
+    // Find teammates
+    const team=practice.teams.find(t=>t.name===myTeam);
+    if(!team) return;
+    const teammates=team.players.filter(p=>p!==playerName);
+    // Get match results for our team this practice
+    practice.matches.forEach(match=>{
+      const isHome=myTeam===match.homeTeam, isAway=myTeam===match.awayTeam;
+      if(!isHome&&!isAway) return;
+      const won=(isHome&&match.homeScore>match.awayScore)||(!isHome&&match.awayScore>match.homeScore);
+      const drew=match.homeScore===match.awayScore;
+      teammates.forEach(tm=>{
+        // Only count if teammate also attended
+        const tmAttended=practice.stats.find(p=>p.name===tm&&p.attendance>0);
+        if(!tmAttended) return;
+        if(!pairStats[tm]) pairStats[tm]={w:0,d:0,l:0};
+        if(won) pairStats[tm].w++;
+        else if(drew) pairStats[tm].d++;
+        else pairStats[tm].l++;
+      });
+    });
+  });
+  const minPairMatches=30;
+  const pairBoard=Object.entries(pairStats)
+    .map(([name,s])=>{const total=s.w+s.d+s.l; return {name,total,...s,winRate:total>0?s.w/total:0,matchPts:s.w*3+s.d};})
+    .filter(p=>p.total>=minPairMatches)
+    .sort((a,b)=>b.winRate-a.winRate||b.matchPts-a.matchPts);
+  const topPairs=pairBoard.slice(0,3);
+
   // Per-practice points for sparkline
   const sortedPractices=practices.slice().sort((a,b)=>a.date.localeCompare(b.date));
   const perPractice=[];
@@ -1529,6 +1567,15 @@ function openPlayerCard(playerName){
         ).join('')}
       </div>
     </div>
+
+    ${topPairs.length>0?`
+    <div class="pc-section">
+      <div class="pc-section-title">Best Partners</div>
+      ${topPairs.map((p,i)=>`<div class="pc-highlight">
+        <div class="pc-highlight-icon">${i===0?'🤝':i===1?'🫱🏼‍🫲🏽':'👊'}</div>
+        <div class="pc-highlight-text"><strong>${p.name}</strong> — ${Math.round(p.winRate*100)}% win rate <span style="color:var(--muted-2)">(${p.w}W ${p.d}D ${p.l}L, ${p.total} matches)</span></div>
+      </div>`).join('')}
+    </div>`:''}
 
     <div class="pc-section">
       <div class="pc-section-title">Season Highs</div>
