@@ -848,6 +848,76 @@ input[type="range"]::-moz-range-track{
 .pc-highlight-text strong{color:var(--white); font-weight:700;}
 
 tr.clickable-row{cursor:pointer;}
+
+.pc-print-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  margin-top:6px; padding:8px 16px; border-radius:12px;
+  background:rgba(255,255,255,.06); border:1px solid var(--border);
+  color:var(--muted); font-size:12px; font-weight:600; cursor:pointer;
+  transition:all .2s;
+}
+.pc-print-btn:hover{background:rgba(255,255,255,.12);color:var(--white);border-color:var(--border-hover);}
+
+@media print{
+  @page{size:A4;margin:12mm;}
+  html,body{height:auto;overflow:visible;}
+  .app{display:none !important;}
+  .player-card-overlay{
+    display:block !important; position:static; background:#fff; backdrop-filter:none;
+    opacity:1; pointer-events:auto; overflow:visible;
+  }
+  .player-card{
+    width:100%; max-height:none;
+    box-shadow:none; border:none; background:#fff;
+    color:#111; padding:0; border-radius:0;
+    animation:none;
+  }
+  .player-card-close,.pc-print-btn{display:none !important;}
+
+  /* Compact header */
+  .pc-header{margin-bottom:12px;}
+  .pc-name{-webkit-text-fill-color:#111;background:none;font-size:22px;}
+  .pc-points{-webkit-text-fill-color:#16a34a;background:none;font-size:26px;margin-top:4px;}
+  .pc-points-avg{color:#666;font-size:11px;margin-top:0;}
+  .pc-rank-badge{padding:4px 12px;font-size:11px;margin-top:6px;}
+
+  /* Compact sections */
+  .pc-section{margin-top:10px;}
+  .pc-section-title{color:#888;font-size:9px;margin-bottom:6px;letter-spacing:1.5px;}
+
+  /* Compact stat tiles */
+  .pc-stats-grid{gap:6px;}
+  .pc-stat{padding:8px 6px;border-radius:8px;background:#f5f5f5;border-color:#ddd;}
+  .pc-stat-value{font-size:15px;color:#111;}
+  .pc-stat-avg{font-size:9px;color:#666;margin-top:1px;}
+  .pc-stat-label{font-size:8px;color:#666;margin-top:3px;}
+
+  /* Compact match record */
+  .pc-match-bar{height:7px;border:1px solid #ddd;margin-top:4px;}
+  .pc-match-bar .w{background:#16a34a;}
+  .pc-match-bar .d{background:#aaa;}
+  .pc-match-bar .l{background:#dc2626;}
+
+  /* Compact rankings */
+  .pc-ranks-grid{gap:4px;}
+  .pc-rank-badge{border:1px solid #ccc;}
+  .pc-rank-other{background:#f0f0f0;color:#555;border-color:#ccc;}
+  .pc-rank-item{padding:5px 10px;border-radius:6px;font-size:11px;background:#f5f5f5;border-color:#ddd;}
+  .pc-rank-item .label{color:#666;}
+  .pc-rank-item .val{color:#111;}
+  .pc-rank-item .val.top3{color:#16a34a;}
+
+  /* Compact sparkline */
+  .pc-sparkline{height:36px;margin-top:4px;gap:2px;}
+  .pc-spark-bar{background:#16a34a;border-radius:2px 2px 0 0;}
+  .pc-spark-zero{background:#ddd;}
+
+  /* Compact highlights */
+  .pc-highlight{padding:8px 12px;border-radius:8px;margin-top:5px;background:#f5f5f5;border-color:#ddd;}
+  .pc-highlight-icon{font-size:16px;}
+  .pc-highlight-text{font-size:11px;color:#555;}
+  .pc-highlight-text strong{color:#111;}
+}
 </style>
 </head>
 <body>
@@ -1490,6 +1560,7 @@ function openPlayerCard(playerName){
       <div><span class="pc-rank-badge ${rankClass}">${medal} #${rank} overall</span></div>
       <div class="pc-points">${pts}</div>
       <div class="pc-points-avg">${avg} pts per practice</div>
+      <button class="pc-print-btn" onclick="window.print()">🖨️ Print</button>
     </div>
 
     <div class="pc-section">
